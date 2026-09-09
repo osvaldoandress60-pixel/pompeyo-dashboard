@@ -473,14 +473,11 @@
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', async () => {
-            // Intentar cargar datos del localStorage primero
-            const datosGuardados = localStorage.getItem('cpd_data');
-            if (datosGuardados) {
-                datosOriginales = JSON.parse(datosGuardados);
+            // Los datos ya están embebidos, inicializar directamente
+            if (datosOriginales.length > 0) {
                 inicializar();
             } else {
-                // Aquí iría la carga desde el servidor en producción
-                console.log('Para usar este panel, se debe cargar los datos JSON');
+                console.log('Error: No hay datos cargados');
             }
         });
 
@@ -719,6 +716,11 @@
                     inicializar();
                 })
                 .catch(e => console.error('Error cargando datos:', e));
+        }
+
+        // Inicializar automáticamente cuando se carga la página
+        if (datosOriginales.length > 0) {
+            inicializar();
         }
     </script>
 </body>

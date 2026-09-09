@@ -1,0 +1,14 @@
+name = "cpd-dashboard"
+type = "javascript"
+main = "index.html"
+
+[env.production]
+route = "cpd-dashboard.pages.dev"
+
+[build]
+command = ""
+cwd = "."
+watch_paths = ["."]
+
+[build.upload]
+format = "service-worker"

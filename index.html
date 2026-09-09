@@ -399,6 +399,165 @@
             color: var(--gris-oscuro);
         }
 
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--celeste);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            color: var(--navy);
+            margin: 0;
+        }
+
+        .close-btn {
+            color: var(--gris-oscuro);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close-btn:hover {
+            color: var(--rojo-alerta);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--gris-medio);
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--celeste);
+            box-shadow: 0 0 0 3px rgba(37, 99, 168, 0.1);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 2px solid var(--gris-medio);
+            padding-top: 15px;
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-primary:hover {
+            background: #0f2847;
+        }
+
+        .btn-secondary {
+            background: var(--gris-medio);
+            color: var(--navy);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d9e6;
+        }
+
+        .btn-editar {
+            background: var(--celeste);
+            color: white;
+            padding: 3px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75em;
+            margin: 0 2px;
+        }
+
+        .btn-editar:hover {
+            background: #1e4d7b;
+        }
+
+        .btn-agregar-registro {
+            background: var(--verde-ok);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .btn-agregar-registro:hover {
+            background: #1f5c2a;
+        }
+
+        .fila-editable {
+            cursor: pointer;
+        }
+
+        .fila-editable:hover {
+            background: #e8f0fa !important;
+        }
+
         @media (max-width: 768px) {
             .resumen-sla-grid {
                 grid-template-columns: 1fr;
@@ -484,6 +643,9 @@
             </div>
         </div>
 
+        <!-- BOTÓN AGREGAR -->
+        <button class="btn-agregar-registro" onclick="abrirModalNuevo()">➕ Agregar Nuevo Vehículo</button>
+
         <!-- TABLA -->
         <div class="tabla-container">
             <div class="tabla-header">
@@ -523,6 +685,124 @@
             <p><strong>Pompeyo Carrasco</strong> | Panel de Control CPD | Jefe Comercial Post Venta</p>
             <p>Colaboradores: Genessis Diaz, Leyla Rivas, Fran Correa, Jaime Arratia, Dayubri González</p>
             <p>Datos actualizados: <span id="fecha-footer"></span></p>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Editar Vehículo</h2>
+                <button class="close-btn" onclick="cerrarModal('modalEditar')">&times;</button>
+            </div>
+            <form id="formEditar" onsubmit="guardarEdicion(event)">
+                <div class="form-group">
+                    <label>Patente</label>
+                    <input type="text" id="edit-patente" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Fecha Entrega a CPD</label>
+                    <input type="date" id="edit-fecha-entrega">
+                </div>
+                <div class="form-group">
+                    <label>Copia Llave</label>
+                    <input type="text" id="edit-copia-llave" placeholder="Ej: Oficina Fran">
+                </div>
+                <div class="form-group">
+                    <label>FED</label>
+                    <input type="text" id="edit-fed" placeholder="Ej: Oficina Fran">
+                </div>
+                <div class="form-group">
+                    <label>Confirmación Genesis</label>
+                    <select id="edit-genesis">
+                        <option value="">Seleccionar...</option>
+                        <option value="Ok">Ok</option>
+                        <option value="En Renting">En Renting</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Solicitud Precio Toma</label>
+                    <input type="date" id="edit-sol-precio">
+                </div>
+                <div class="form-group">
+                    <label>Solicitud Factura</label>
+                    <input type="date" id="edit-sol-factura">
+                </div>
+                <div class="form-group">
+                    <label>Número Factura</label>
+                    <input type="text" id="edit-numero-factura" placeholder="Ej: FAC-001">
+                </div>
+                <div class="form-group">
+                    <label>Fecha Factura</label>
+                    <input type="date" id="edit-fecha-factura">
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO VEHÍCULO -->
+    <div id="modalNuevo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Agregar Nuevo Vehículo</h2>
+                <button class="close-btn" onclick="cerrarModal('modalNuevo')">&times;</button>
+            </div>
+            <form id="formNuevo" onsubmit="agregarVehiculo(event)">
+                <div class="form-group">
+                    <label>Patente *</label>
+                    <input type="text" id="new-patente" required>
+                </div>
+                <div class="form-group">
+                    <label>Marca *</label>
+                    <input type="text" id="new-marca" required>
+                </div>
+                <div class="form-group">
+                    <label>Modelo *</label>
+                    <input type="text" id="new-modelo" required>
+                </div>
+                <div class="form-group">
+                    <label>VIN *</label>
+                    <input type="text" id="new-vin" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="new-categoria" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="RENTING">RENTING</option>
+                        <option value="TEST CAR">TEST CAR</option>
+                        <option value="COMPANY CAR">COMPANY CAR</option>
+                        <option value="OTROS">OTROS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha Entrega a CPD *</label>
+                    <input type="date" id="new-fecha-entrega" required>
+                </div>
+                <div class="form-group">
+                    <label>Copia Llave</label>
+                    <input type="text" id="new-copia-llave">
+                </div>
+                <div class="form-group">
+                    <label>FED</label>
+                    <input type="text" id="new-fed">
+                </div>
+                <div class="form-group">
+                    <label>Confirmación Genesis</label>
+                    <select id="new-genesis">
+                        <option value="">Seleccionar...</option>
+                        <option value="Ok">Ok</option>
+                        <option value="En Renting">En Renting</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevo')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Agregar Vehículo</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -702,8 +982,9 @@
 
             document.getElementById('sin-datos').style.display = 'none';
 
-            datosFiltrados.forEach(v => {
+            datosFiltrados.forEach((v, idx) => {
                 const fila = document.createElement('tr');
+                fila.className = 'fila-editable';
                 const estadoLlave = v['Copia llave'] ? 'estado-ok' : 'estado-vacio';
                 const textLlave = v['Copia llave'] ? v['Copia llave'] : '—';
                 const estadoFED = v.FED ? 'estado-ok' : 'estado-vacio';
@@ -724,6 +1005,7 @@
                     <td><strong>${v['Numero Factura'] || '—'}</strong></td>
                     <td>${v['Fecha Factura'] || '—'}</td>
                 `;
+                fila.onclick = () => abrirModalEditar(v);
                 tbody.appendChild(fila);
             });
 
@@ -772,8 +1054,132 @@
             mostrarTabla();
         }
 
+        // FUNCIONES DE MODAL
+        function abrirModalEditar(vehiculo) {
+            document.getElementById('edit-patente').value = vehiculo.Patente;
+            document.getElementById('edit-fecha-entrega').value = vehiculo['Fecha Entrega a CPD'] || '';
+            document.getElementById('edit-copia-llave').value = vehiculo['Copia llave'] || '';
+            document.getElementById('edit-fed').value = vehiculo.FED || '';
+            document.getElementById('edit-genesis').value = vehiculo['Confirmación Genessis'] || '';
+            document.getElementById('edit-sol-precio').value = vehiculo['Fecha Solicitud Precio Toma'] || '';
+            document.getElementById('edit-sol-factura').value = vehiculo['Fecha Solicitud Factura'] || '';
+            document.getElementById('edit-numero-factura').value = vehiculo['Numero Factura'] || '';
+            document.getElementById('edit-fecha-factura').value = vehiculo['Fecha Factura'] || '';
+
+            window.vehiculoEnEdicion = vehiculo;
+            document.getElementById('modalEditar').style.display = 'block';
+        }
+
+        function abrirModalNuevo() {
+            document.getElementById('formNuevo').reset();
+            document.getElementById('modalNuevo').style.display = 'block';
+        }
+
+        function cerrarModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function guardarEdicion(event) {
+            event.preventDefault();
+
+            const vehiculo = window.vehiculoEnEdicion;
+            vehiculo['Fecha Entrega a CPD'] = document.getElementById('edit-fecha-entrega').value;
+            vehiculo['Copia llave'] = document.getElementById('edit-copia-llave').value;
+            vehiculo.FED = document.getElementById('edit-fed').value;
+            vehiculo['Confirmación Genessis'] = document.getElementById('edit-genesis').value;
+            vehiculo['Fecha Solicitud Precio Toma'] = document.getElementById('edit-sol-precio').value;
+            vehiculo['Fecha Solicitud Factura'] = document.getElementById('edit-sol-factura').value;
+            vehiculo['Numero Factura'] = document.getElementById('edit-numero-factura').value;
+            vehiculo['Fecha Factura'] = document.getElementById('edit-fecha-factura').value;
+
+            guardarEnLocalStorage();
+            cerrarModal('modalEditar');
+            mostrarResumen();
+            mostrarTabla();
+
+            alert('✅ Cambios guardados correctamente');
+        }
+
+        function agregarVehiculo(event) {
+            event.preventDefault();
+
+            const nuevoVehiculo = {
+                Patente: document.getElementById('new-patente').value,
+                Marca: document.getElementById('new-marca').value,
+                Modelo: document.getElementById('new-modelo').value,
+                VIN: document.getElementById('new-vin').value,
+                Categoria: document.getElementById('new-categoria').value,
+                'Fecha Entrega a CPD': document.getElementById('new-fecha-entrega').value,
+                'Copia llave': document.getElementById('new-copia-llave').value,
+                FED: document.getElementById('new-fed').value,
+                'Confirmación Genessis': document.getElementById('new-genesis').value,
+                Responsable: '',
+                Sucursal: '',
+                Comentarios: '',
+                Documentos: '',
+                Precompra: '',
+                'Solicitud Precio Toma': '',
+                'Solicitud Factura': '',
+                'Numero Factura': '',
+                'Fecha Solicitud Precio Toma': '',
+                'Fecha Solicitud Factura': '',
+                'Fecha Factura': '',
+                SLA_Dias: 5
+            };
+
+            datosOriginales.push(nuevoVehiculo);
+            guardarEnLocalStorage();
+            cerrarModal('modalNuevo');
+            datosFiltrados = [...datosOriginales];
+            mostrarResumen();
+            mostrarTabla();
+
+            alert('✅ Vehículo agregado correctamente');
+        }
+
+        function guardarEnLocalStorage() {
+            try {
+                localStorage.setItem('cpd_data_local', JSON.stringify(datosOriginales));
+            } catch (e) {
+                console.log('No se pudo guardar en localStorage:', e);
+            }
+        }
+
+        function cargarDelLocalStorage() {
+            try {
+                const datos = localStorage.getItem('cpd_data_local');
+                if (datos) {
+                    const datosGuardados = JSON.parse(datos);
+                    if (datosGuardados.length > 0) {
+                        datosOriginales = datosGuardados;
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.log('No se pudo cargar de localStorage:', e);
+            }
+            return false;
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modalEditar = document.getElementById('modalEditar');
+            const modalNuevo = document.getElementById('modalNuevo');
+            if (event.target === modalEditar) {
+                modalEditar.style.display = 'none';
+            }
+            if (event.target === modalNuevo) {
+                modalNuevo.style.display = 'none';
+            }
+        };
+
         // Inicializar automáticamente cuando se carga la página
         document.addEventListener('DOMContentLoaded', () => {
+            // Intentar cargar datos guardados
+            if (!cargarDelLocalStorage() && datosOriginales.length > 0) {
+                guardarEnLocalStorage();
+            }
+
             if (datosOriginales.length > 0) {
                 inicializar();
             }

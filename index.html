@@ -93,6 +93,7 @@
             <form id="formEditar" onsubmit="guardarEdicion(event)">
                 <div class="form-group"><label>Patente</label><input type="text" id="edit-patente" readonly></div>
                 <div class="form-group"><label>Numero Factura</label><input type="text" id="edit-numero-factura"></div>
+                <div class="form-group"><label>Factura SI/NO</label><select id="edit-factura-sino"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
                 <div class="form-group"><label>Copia Llave</label><input type="text" id="edit-copia-llave"></div>
                 <div class="form-group"><label>FED</label><input type="text" id="edit-fed"></div>
                 <div class="form-group"><label>Genesis</label><select id="edit-genesis"><option value="">Seleccionar</option><option value="Ok">Ok</option><option value="En Renting">En Renting</option></select></div>
@@ -117,6 +118,7 @@
                 <div class="form-group"><label>Categoria *</label><select id="new-categoria" required><option value="">Seleccionar</option><option value="RENTING">RENTING</option><option value="TEST CAR">TEST CAR</option><option value="COMPANY CAR">COMPANY CAR</option><option value="OTROS">OTROS</option></select></div>
                 <div class="form-group"><label>Fecha Entrega *</label><input type="date" id="new-fecha-entrega" required></div>
                 <div class="form-group"><label>Numero Factura</label><input type="text" id="new-numero-factura"></div>
+                <div class="form-group"><label>Factura SI/NO</label><select id="new-factura-sino"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
                 <div class="form-group"><label>Copia Llave</label><input type="text" id="new-copia-llave"></div>
                 <div class="form-group"><label>FED</label><input type="text" id="new-fed"></div>
                 <div class="form-group"><label>Solicitud Precio</label><input type="date" id="new-fecha-sol-precio"></div>
@@ -669,6 +671,7 @@ function abrirModalEditar(p) {
     modalEnEdicion = p;
     document.getElementById("edit-patente").value = v.Patente;
     document.getElementById("edit-numero-factura").value = v["Numero Factura"] || "";
+    document.getElementById("edit-factura-sino").value = v["Fecha Factura CND"] ? "si" : "no";
     document.getElementById("edit-copia-llave").value = v["Copia llave"] || "";
     document.getElementById("edit-fed").value = v.FED || "";
     document.getElementById("edit-genesis").value = v["Confirmación Genessis"] || "";
@@ -694,6 +697,13 @@ function guardarEdicion(e) {
     const v = datosOriginales.find(x => x.Patente === modalEnEdicion);
     if (!v) return;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
+    const facturaSino = document.getElementById("edit-factura-sino").value;
+    if (facturaSino === "si" && !v["Fecha Factura CND"]) {
+        const hoy = new Date().toISOString().split('T')[0];
+        v["Fecha Factura CND"] = hoy;
+    } else if (facturaSino === "no") {
+        v["Fecha Factura CND"] = "";
+    }
     v["Copia llave"] = document.getElementById("edit-copia-llave").value;
     v.FED = document.getElementById("edit-fed").value;
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
@@ -727,6 +737,7 @@ function agregarVehiculo(e) {
         VIN: document.getElementById("new-vin").value, Responsable: "NUEVO", Sucursal: "PENDIENTE",
         "Fecha Entrega a CPD": document.getElementById("new-fecha-entrega").value,
         "Numero Factura": document.getElementById("new-numero-factura").value,
+        "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? new Date().toISOString().split('T')[0] : "",
         "Copia llave": document.getElementById("new-copia-llave").value, FED: document.getElementById("new-fed").value,
         "Confirmación Genessis": "", Comentarios: "", Documentos: "", Precompra: "",
         Categoria: document.getElementById("new-categoria").value, "Solicitud Precio Toma": "",

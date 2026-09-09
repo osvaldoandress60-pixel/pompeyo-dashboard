@@ -1,0 +1,519 @@
+#!/usr/bin/env python3
+import json
+import base64
+
+# Leer datos
+with open('cpd_data_v3.json', 'r', encoding='utf-8') as f:
+    datos = json.load(f)
+
+# Codificar en base64
+datos_json = json.dumps(datos, ensure_ascii=False)
+datos_b64 = base64.b64encode(datos_json.encode('utf-8')).decode('ascii')
+
+# Template HTML simple pero robusto
+html_template = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel CPD - Pompeyo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --navy: #1a3a6b;
+            --celeste: #2563a8;
+            --gris-claro: #f0f3f8;
+            --gris-medio: #d1d9e6;
+            --rojo: #d32f2f;
+            --verde: #2e7d32;
+            --amarillo: #f57c00;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%);
+            color: #1a1f2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1800px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .header p { font-size: 0.9em; opacity: 0.9; }
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .card-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--celeste);
+        }
+        .card-stat h3 { font-size: 0.75em; color: #1a1f2e; margin-bottom: 8px; text-transform: uppercase; }
+        .card-stat .valor { font-size: 1.8em; font-weight: bold; color: var(--navy); margin-bottom: 5px; }
+        .card-stat .porcentaje { font-size: 0.85em; color: #6b7a8d; }
+        .filtros-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--gris-medio);
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-primary { background: var(--celeste); color: white; }
+        .btn-secondary { background: var(--gris-claro); color: var(--navy); }
+        .btn-success { background: var(--verde); color: white; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .alertas-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .alerta-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fff3e0;
+            border-left: 4px solid var(--amarillo);
+            border-radius: 4px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        th {
+            background: var(--navy);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gris-claro);
+        }
+        tr:hover { background: var(--gris-claro); }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--gris-claro);
+            padding-bottom: 15px;
+        }
+        .modal-header h2 { color: var(--navy); font-size: 1.5em; }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #6b7a8d;
+            padding: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 0.9em;
+        }
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .status-ok { color: var(--verde); font-weight: bold; }
+        .status-error { color: var(--rojo); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Panel CPD</h1>
+                <p>Control de Proceso de Distribucion - Pompeyo Carrasco</p>
+                <p style="font-size: 0.8em; opacity: 0.8;">429 vehiculos entregados</p>
+            </div>
+        </div>
+
+        <div class="resumen-grid" id="resumen-grid"></div>
+
+        <div class="filtros-section">
+            <h3>Filtros Avanzados</h3>
+            <div class="filtros-grid">
+                <div><label>Marca</label><select id="filtro-marca"><option value="">Todas</option></select></div>
+                <div><label>Gerencia</label><select id="filtro-gerencia"><option value="">Todas</option><option value="DC">DC</option><option value="NB">NB</option></select></div>
+                <div><label>Categoria</label><select id="filtro-categoria"><option value="">Todas</option><option value="RENTING">RENTING</option><option value="TEST CAR">TEST CAR</option><option value="COMPANY CAR">COMPANY CAR</option><option value="OTROS">OTROS</option></select></div>
+                <div><label>Busqueda</label><input type="text" id="filtro-busqueda" placeholder="Patente o VIN..."></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+                <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
+                <button class="btn-success" onclick="abrirModalNuevo()">+ Agregar Vehiculo</button>
+            </div>
+        </div>
+
+        <div class="alertas-section" id="alertas-section"></div>
+
+        <div class="table-container">
+            <table id="tabla-vehiculos">
+                <thead>
+                    <tr>
+                        <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Categoria</th><th>Fecha Entrega</th><th>Copia Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th><th>SLA 1</th><th>SLA 2</th><th>SLA 3</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Vehiculo</h2>
+                <button class="close-btn" onclick="cerrarModal('modalEditar')">&times;</button>
+            </div>
+            <form id="formEditar" onsubmit="guardarEdicion(event)">
+                <div class="form-group"><label>Patente</label><input type="text" id="edit-patente" readonly></div>
+                <div class="form-group"><label>Copia Llave</label><input type="text" id="edit-copia-llave"></div>
+                <div class="form-group"><label>FED</label><input type="text" id="edit-fed"></div>
+                <div class="form-group"><label>Genesis</label><select id="edit-genesis"><option value="">Seleccionar...</option><option value="Ok">Ok</option><option value="En Renting">En Renting</option></select></div>
+                <div class="form-group"><label>Fecha Solicitud Precio</label><input type="date" id="edit-fecha-sol-precio"></div>
+                <div class="form-group"><label>Fecha Entrega Precio</label><input type="date" id="edit-fecha-entrega-precio"></div>
+                <div class="form-group"><label>Fecha Solicitud Factura CND</label><input type="date" id="edit-fecha-sol-factura"></div>
+                <div class="form-group"><label>Fecha Factura CND</label><input type="date" id="edit-fecha-factura"></div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalNuevo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Vehiculo</h2>
+                <button class="close-btn" onclick="cerrarModal('modalNuevo')">&times;</button>
+            </div>
+            <form id="formNuevo" onsubmit="agregarVehiculo(event)">
+                <div class="form-group"><label>Patente *</label><input type="text" id="new-patente" required></div>
+                <div class="form-group"><label>Marca *</label><select id="new-marca" required><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Modelo *</label><input type="text" id="new-modelo" required></div>
+                <div class="form-group"><label>VIN *</label><input type="text" id="new-vin" required></div>
+                <div class="form-group"><label>Categoria *</label><select id="new-categoria" required><option value="">Seleccionar...</option><option value="RENTING">RENTING</option><option value="TEST CAR">TEST CAR</option><option value="COMPANY CAR">COMPANY CAR</option><option value="OTROS">OTROS</option></select></div>
+                <div class="form-group"><label>Fecha Entrega a CPD *</label><input type="date" id="new-fecha-entrega" required></div>
+                <div class="form-group"><label>Copia Llave</label><input type="text" id="new-copia-llave"></div>
+                <div class="form-group"><label>FED</label><input type="text" id="new-fed"></div>
+                <div class="form-group"><label>Fecha Solicitud Precio</label><input type="date" id="new-fecha-sol-precio"></div>
+                <div class="form-group"><label>Fecha Entrega Precio</label><input type="date" id="new-fecha-entrega-precio"></div>
+                <div class="form-group"><label>Fecha Solicitud Factura CND</label><input type="date" id="new-fecha-sol-factura"></div>
+                <div class="form-group"><label>Fecha Factura CND</label><input type="date" id="new-fecha-factura"></div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevo')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const DATOS_B64 = '%s';
+        let datosOriginales = [];
+        let datosFiltrados = [];
+        let modalEnEdicion = null;
+
+        function init() {
+            const decoded = atob(DATOS_B64);
+            datosOriginales = JSON.parse(decoded);
+            datosFiltrados = [...datosOriginales];
+            cargarDelLocalStorage();
+            inicializar();
+            poblarFiltroMarcas();
+            mostrarTabla();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function calcularSLA(f1, f2) {
+            if (!f1 || !f2) return 0;
+            const d1 = new Date(f1);
+            const d2 = new Date(f2);
+            return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+        }
+
+        function poblarFiltroMarcas() {
+            const marcas = [...new Set(datosOriginales.map(d => d.Marca))].sort();
+            const sel1 = document.getElementById('filtro-marca');
+            const sel2 = document.getElementById('new-marca');
+            marcas.forEach(m => {
+                const opt1 = document.createElement('option');
+                opt1.value = m; opt1.textContent = m;
+                sel1.appendChild(opt1);
+                const opt2 = document.createElement('option');
+                opt2.value = m; opt2.textContent = m;
+                sel2.appendChild(opt2);
+            });
+        }
+
+        function mostrarResumen() {
+            const t = datosOriginales.length;
+            const g = datosOriginales.filter(d => d['Confirmación Genessis'] === 'Ok').length;
+            const l = datosOriginales.filter(d => d['Copia llave']).length;
+            const f = datosOriginales.filter(d => d.FED).length;
+            const fc = datosOriginales.filter(d => d['Fecha Factura CND']).length;
+            document.getElementById('resumen-grid').innerHTML = `
+                <div class="card-stat"><h3>Total</h3><div class="valor">${t}</div><div class="porcentaje">Nomina</div></div>
+                <div class="card-stat"><h3>Genesis OK</h3><div class="valor">${g}</div><div class="porcentaje">${(g/t*100).toFixed(1)}%</div></div>
+                <div class="card-stat"><h3>Sin Copia</h3><div class="valor">${t-l}</div><div class="porcentaje">${((t-l)/t*100).toFixed(1)}%</div></div>
+                <div class="card-stat"><h3>Sin FED</h3><div class="valor">${t-f}</div><div class="porcentaje">${((t-f)/t*100).toFixed(1)}%</div></div>
+                <div class="card-stat"><h3>Con Factura</h3><div class="valor">${fc}</div><div class="porcentaje">${(fc/t*100).toFixed(1)}%</div></div>
+            `;
+            const sl = t - l, sf = t - f;
+            document.getElementById('alertas-section').innerHTML = `
+                <h3>Alertas</h3>
+                ${sl > 0 ? `<div class="alerta-item"><strong>${sl}</strong> sin copia de llave</div>` : ''}
+                ${sf > 0 ? `<div class="alerta-item"><strong>${sf}</strong> sin FED</div>` : ''}
+                ${sl === 0 && sf === 0 ? '<div style="color: green; font-weight: bold;">Todo en orden</div>' : ''}
+            `;
+        }
+
+        function mostrarTabla() {
+            const tb = document.getElementById('tabla-body');
+            tb.innerHTML = '';
+            datosFiltrados.forEach(v => {
+                const s1 = calcularSLA(v['Fecha Solicitud Precio'], v['Fecha Entrega Precio']);
+                const s2 = calcularSLA(v['Fecha Entrega Precio'], v['Fecha Solicitud Factura CND']);
+                const s3 = calcularSLA(v['Fecha Solicitud Factura CND'], v['Fecha Factura CND']);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
+                    <td>${v.Patente}</td>
+                    <td>${v.Marca}</td>
+                    <td><strong>${v.Gerencia}</strong></td>
+                    <td>${v.Modelo.substring(0, 25)}</td>
+                    <td>${v.Categoria}</td>
+                    <td>${v['Fecha Entrega a CPD']}</td>
+                    <td>${v['Copia llave'] ? 'OK' : ''}</td>
+                    <td>${v.FED ? 'OK' : ''}</td>
+                    <td class="${v['Confirmación Genessis'] === 'Ok' ? 'status-ok' : 'status-error'}">${v['Confirmación Genessis'] || 'N/A'}</td>
+                    <td>${v['Fecha Solicitud Precio'] || '-'}</td>
+                    <td>${v['Fecha Entrega Precio'] || '-'}</td>
+                    <td>${v['Fecha Solicitud Factura CND'] || '-'}</td>
+                    <td>${v['Fecha Factura CND'] || '-'}</td>
+                    <td><strong>${s1 > 0 ? s1 : '-'}</strong></td>
+                    <td><strong>${s2 > 0 ? s2 : '-'}</strong></td>
+                    <td><strong>${s3 > 0 ? s3 : '-'}</strong></td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        function inicializar() {
+            mostrarResumen();
+        }
+
+        function aplicarFiltros() {
+            const m = document.getElementById('filtro-marca').value;
+            const g = document.getElementById('filtro-gerencia').value;
+            const c = document.getElementById('filtro-categoria').value;
+            const b = document.getElementById('filtro-busqueda').value.toUpperCase();
+            datosFiltrados = datosOriginales.filter(v =>
+                (!m || v.Marca === m) && (!g || v.Gerencia === g) && (!c || v.Categoria === c) &&
+                (!b || v.Patente.includes(b) || v.VIN.includes(b))
+            );
+            mostrarTabla();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtro-marca').value = '';
+            document.getElementById('filtro-gerencia').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-busqueda').value = '';
+            datosFiltrados = [...datosOriginales];
+            mostrarTabla();
+        }
+
+        function abrirModalEditar(p) {
+            const v = datosOriginales.find(x => x.Patente === p);
+            if (!v) return;
+            modalEnEdicion = p;
+            document.getElementById('edit-patente').value = v.Patente;
+            document.getElementById('edit-copia-llave').value = v['Copia llave'] || '';
+            document.getElementById('edit-fed').value = v.FED || '';
+            document.getElementById('edit-genesis').value = v['Confirmación Genessis'] || '';
+            document.getElementById('edit-fecha-sol-precio').value = v['Fecha Solicitud Precio'] || '';
+            document.getElementById('edit-fecha-entrega-precio').value = v['Fecha Entrega Precio'] || '';
+            document.getElementById('edit-fecha-sol-factura').value = v['Fecha Solicitud Factura CND'] || '';
+            document.getElementById('edit-fecha-factura').value = v['Fecha Factura CND'] || '';
+            document.getElementById('modalEditar').classList.add('show');
+        }
+
+        function abrirModalNuevo() {
+            document.getElementById('formNuevo').reset();
+            document.getElementById('modalNuevo').classList.add('show');
+        }
+
+        function cerrarModal(m) {
+            document.getElementById(m).classList.remove('show');
+            modalEnEdicion = null;
+        }
+
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
+        };
+
+        function guardarEdicion(e) {
+            e.preventDefault();
+            const v = datosOriginales.find(x => x.Patente === modalEnEdicion);
+            if (!v) return;
+            v['Copia llave'] = document.getElementById('edit-copia-llave').value;
+            v.FED = document.getElementById('edit-fed').value;
+            v['Confirmación Genessis'] = document.getElementById('edit-genesis').value;
+            v['Fecha Solicitud Precio'] = document.getElementById('edit-fecha-sol-precio').value;
+            v['Fecha Entrega Precio'] = document.getElementById('edit-fecha-entrega-precio').value;
+            v['Fecha Solicitud Factura CND'] = document.getElementById('edit-fecha-sol-factura').value;
+            v['Fecha Factura CND'] = document.getElementById('edit-fecha-factura').value;
+            guardarEnLocalStorage();
+            cerrarModal('modalEditar');
+            mostrarTabla();
+            mostrarResumen();
+        }
+
+        function getGerencia(m) {
+            const dc = ['KIA', 'SUBARU', 'DFSK', 'DONGFENG', 'SINOTRUK'];
+            const nb = ['OPEL', 'PEUGEOT', 'CITROEN', 'NISSAN', 'GEELY', 'LEAD MOTORS', 'MG', 'LYNK & CO'];
+            const mu = m.toUpperCase();
+            return dc.some(d => mu.includes(d)) ? 'DC' : nb.some(n => mu.includes(n)) ? 'NB' : 'SIN ASIGNAR';
+        }
+
+        function agregarVehiculo(e) {
+            e.preventDefault();
+            const p = document.getElementById('new-patente').value;
+            if (datosOriginales.find(x => x.Patente === p)) {
+                alert('Ya existe');
+                return;
+            }
+            const m = document.getElementById('new-marca').value;
+            datosOriginales.push({
+                Marca: m, Modelo: document.getElementById('new-modelo').value, Patente: p,
+                VIN: document.getElementById('new-vin').value, Responsable: 'NUEVO', Sucursal: 'PENDIENTE',
+                'Fecha Entrega a CPD': document.getElementById('new-fecha-entrega').value,
+                'Copia llave': document.getElementById('new-copia-llave').value, FED: document.getElementById('new-fed').value,
+                'Confirmación Genessis': '', Comentarios: '', Documentos: '', Precompra: '',
+                Categoria: document.getElementById('new-categoria').value, 'Solicitud Precio Toma': '',
+                'Solicitud Factura': '', 'Numero Factura': '', 'Fecha Solicitud Precio Toma': '',
+                'Fecha Solicitud Factura': '', 'Fecha Factura': '', SLA_Dias: 0, Gerencia: getGerencia(m),
+                'Fecha Solicitud Precio': document.getElementById('new-fecha-sol-precio').value,
+                'Fecha Entrega Precio': document.getElementById('new-fecha-entrega-precio').value,
+                'Fecha Solicitud Factura CND': document.getElementById('new-fecha-sol-factura').value,
+                'Fecha Factura CND': document.getElementById('new-fecha-factura').value,
+                SLA_Precio_Dias: 0, SLA_Factura_Dias: 0, SLA_Pago_Dias: 0
+            });
+            guardarEnLocalStorage();
+            cerrarModal('modalNuevo');
+            limpiarFiltros();
+            mostrarResumen();
+            mostrarTabla();
+        }
+
+        function guardarEnLocalStorage() {
+            localStorage.setItem('cpd-datos', JSON.stringify(datosOriginales));
+        }
+
+        function cargarDelLocalStorage() {
+            const g = localStorage.getItem('cpd-datos');
+            if (g) {
+                try {
+                    datosOriginales = JSON.parse(g);
+                    datosFiltrados = [...datosOriginales];
+                } catch (e) {}
+            }
+        }
+    </script>
+</body>
+</html>
+"""
+
+# Generar HTML final
+html_final = html_template % datos_b64
+
+# Guardar
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(html_final)
+
+print(f"OK: HTML generado con {len(datos)} registros (base64)")

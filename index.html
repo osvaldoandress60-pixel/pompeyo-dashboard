@@ -698,11 +698,16 @@ function guardarEdicion(e) {
     if (!v) return;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
     const facturaSino = document.getElementById("edit-factura-sino").value;
-    if (facturaSino === "si") {
+    const fechaFacturaCND = document.getElementById("edit-fecha-factura").value;
+    if (facturaSino === "si" && !fechaFacturaCND) {
         const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById("edit-fecha-factura").value = hoy;
         v["Fecha Factura CND"] = hoy;
     } else if (facturaSino === "no") {
+        document.getElementById("edit-fecha-factura").value = "";
         v["Fecha Factura CND"] = "";
+    } else {
+        v["Fecha Factura CND"] = fechaFacturaCND;
     }
     v["Copia llave"] = document.getElementById("edit-copia-llave").value;
     v.FED = document.getElementById("edit-fed").value;
@@ -737,7 +742,7 @@ function agregarVehiculo(e) {
         VIN: document.getElementById("new-vin").value, Responsable: "NUEVO", Sucursal: "PENDIENTE",
         "Fecha Entrega a CPD": document.getElementById("new-fecha-entrega").value,
         "Numero Factura": document.getElementById("new-numero-factura").value,
-        "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? new Date().toISOString().split('T')[0] : "",
+        "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? (() => { const hoy = new Date().toISOString().split('T')[0]; document.getElementById("new-fecha-factura").value = hoy; return hoy; })() : "",
         "Copia llave": document.getElementById("new-copia-llave").value, FED: document.getElementById("new-fed").value,
         "Confirmación Genessis": "", Comentarios: "", Documentos: "", Precompra: "",
         Categoria: document.getElementById("new-categoria").value, "Solicitud Precio Toma": "",

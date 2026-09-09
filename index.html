@@ -698,7 +698,7 @@ function guardarEdicion(e) {
     if (!v) return;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
     const facturaSino = document.getElementById("edit-factura-sino").value;
-    if (facturaSino === "si" && !v["Fecha Factura CND"]) {
+    if (facturaSino === "si") {
         const hoy = new Date().toISOString().split('T')[0];
         v["Fecha Factura CND"] = hoy;
     } else if (facturaSino === "no") {

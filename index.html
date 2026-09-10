@@ -160,7 +160,7 @@ function actualizarSyncStatus(estado) {
 async function cargarDelSupabase() {
     try {
         actualizarSyncStatus('sincronizando');
-        const { data, error } = await supabase.from('vehiculos').select('*');
+        const { data, error } = await supabase.from('vehiculos').select('*', { count: 'exact' });
         if (error) throw error;
         datosOriginales = data || [];
         datosFiltrados = [...datosOriginales];
@@ -190,7 +190,11 @@ function suscribirseACambios() {
 
 async function guardarEnSupabase(vehiculo) {
     try {
-        await supabase.from('vehiculos').upsert([vehiculo], { onConflict: 'Patente' });
+        const existe = datosOriginales.find(v => v.Patente === vehiculo.Patente);
+        if (existe) {
+            await supabase.from('vehiculos').delete().eq('Patente', vehiculo.Patente);
+        }
+        await supabase.from('vehiculos').insert([vehiculo]);
         await cargarDelSupabase();
     } catch (error) {
         console.error('Error guardando:', error);

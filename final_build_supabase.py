@@ -15,38 +15,48 @@ html_header = f'''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Entregas Vehiculos a CPD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        :root {{ --navy: #1a3a6b; --celeste: #2563a8; --gris-claro: #f0f3f8; --rojo: #d32f2f; --verde: #2e7d32; }}
-        body {{ font-family: Segoe UI, sans-serif; background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: #1a1f2e; min-height: 100vh; padding: 20px; }}
+        :root {{ --azul: #001EF0; --azul-osc: #0016B8; --azul-clr: #8FA0FF; --naranjo: #FA410A; --naranjo-osc: #C33205; --naranjo-clr: #FAB49B; --slate: #8A95A6; --slate-osc: #3A3F47; --fondo: #F5F6F8; --borde: #D9DEE8; --grilla: #E7EBF2; --exito: #41B437; --peligro: #E00000; --negro: #111111; --blanco: #FFFFFF; --fuente: 'Poppins', sans-serif; --radius: 20px; --sombra: 0 4px 16px rgba(0,0,0,.08); }}
+        body {{ font-family: var(--fuente); font-weight: 400; color: var(--negro); background: var(--fondo); min-height: 100vh; padding: 20px; }}
         .container {{ max-width: 1800px; margin: 0 auto; }}
-        .header {{ background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: white; padding: 30px 40px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }}
-        .header h1 {{ font-size: 2em; margin-bottom: 8px; }}
-        .header p {{ font-size: 0.9em; opacity: 0.9; }}
+        .header {{ background: var(--azul); color: white; padding: 40px; border-radius: var(--radius); margin-bottom: 30px; box-shadow: var(--sombra); }}
+        .header h1 {{ font-size: 2.2em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }}
+        .header p {{ font-size: 0.9em; opacity: 0.9; margin-bottom: 4px; }}
         .resumen-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }}
-        .card-stat {{ background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border-left: 4px solid var(--celeste); }}
-        .card-stat h3 {{ font-size: 0.75em; color: #1a1f2e; margin-bottom: 8px; text-transform: uppercase; }}
-        .card-stat .valor {{ font-size: 1.8em; font-weight: bold; color: var(--navy); }}
-        .filtros-section {{ background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }}
+        .card-stat {{ background: white; padding: 20px 24px; border-radius: var(--radius); box-shadow: var(--sombra); border: 1px solid var(--borde); transition: border-color 0.2s; }}
+        .card-stat:hover {{ border-color: var(--naranjo); }}
+        .card-stat h3 {{ font-size: 0.75em; color: var(--slate-osc); margin-bottom: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em; }}
+        .card-stat .valor {{ font-size: 1.8em; font-weight: 700; color: var(--azul); }}
+        .filtros-section {{ background: white; padding: 24px; border-radius: var(--radius); margin-bottom: 30px; box-shadow: var(--sombra); border: 1px solid var(--borde); }}
+        .filtros-section h3 {{ font-size: 0.9em; text-transform: uppercase; font-weight: 700; color: var(--slate-osc); letter-spacing: 0.05em; margin-bottom: 20px; }}
         .filtros-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 15px; }}
-        select, input {{ width: 100%; padding: 8px 12px; border: 1px solid #d1d9e6; border-radius: 6px; }}
-        button {{ padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-right: 10px; }}
-        .btn-primary {{ background: var(--celeste); color: white; }}
-        .btn-secondary {{ background: var(--gris-claro); color: var(--navy); }}
-        .btn-success {{ background: var(--verde); color: white; }}
-        .alertas-section {{ background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }}
-        .table-container {{ background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 30px; }}
+        .filtros-grid label {{ font-size: 0.85em; font-weight: 600; text-transform: uppercase; color: var(--slate-osc); margin-bottom: 6px; display: block; }}
+        select, input {{ width: 100%; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 12px; font-family: var(--fuente); font-size: 0.9em; }}
+        select:focus, input:focus {{ outline: none; border-color: var(--azul); box-shadow: 0 0 0 2px rgba(0, 30, 240, 0.1); }}
+        button {{ padding: 10px 18px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-family: var(--fuente); margin-right: 10px; transition: all 0.2s; }}
+        .btn-primary {{ background: var(--azul); color: white; }}
+        .btn-primary:hover {{ background: var(--azul-osc); }}
+        .btn-secondary {{ background: var(--fondo); color: var(--negro); border: 1px solid var(--borde); }}
+        .btn-secondary:hover {{ background: var(--borde); }}
+        .btn-success {{ background: var(--exito); color: white; }}
+        .btn-success:hover {{ background: #36a031; }}
+        .alertas-section {{ background: white; padding: 24px; border-radius: var(--radius); margin-bottom: 30px; box-shadow: var(--sombra); border: 1px solid var(--borde); }}
+        .alertas-section h3 {{ font-size: 0.9em; text-transform: uppercase; font-weight: 700; color: var(--slate-osc); letter-spacing: 0.05em; margin-bottom: 12px; }}
+        .table-container {{ background: white; border-radius: var(--radius); overflow-x: auto; box-shadow: var(--sombra); margin-bottom: 30px; border: 1px solid var(--borde); }}
         table {{ width: 100%; border-collapse: collapse; font-size: 0.9em; }}
-        th {{ background: var(--navy); color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }}
-        td {{ padding: 12px; border-bottom: 1px solid var(--gris-claro); }}
-        tr:hover {{ background: var(--gris-claro); }}
+        th {{ background: var(--azul); color: white; padding: 14px; text-align: left; font-weight: 600; position: sticky; top: 0; }}
+        td {{ padding: 12px 14px; border-bottom: 1px solid var(--grilla); }}
+        tr:hover {{ background: var(--fondo); }}
         .modal {{ display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }}
         .modal.show {{ display: flex; align-items: center; justify-content: center; }}
-        .modal-content {{ background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; }}
+        .modal-content {{ background: white; padding: 30px; border-radius: var(--radius); max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }}
+        .modal-content h2 {{ font-size: 1.3em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--azul); margin-bottom: 20px; }}
         .form-group {{ margin-bottom: 15px; }}
-        .form-group label {{ display: block; margin-bottom: 5px; font-weight: 600; color: var(--navy); }}
-        .sync-status {{ position: fixed; top: 10px; right: 10px; padding: 8px 12px; background: #4CAF50; color: white; border-radius: 4px; font-size: 0.85em; }}
+        .form-group label {{ display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85em; text-transform: uppercase; color: var(--slate-osc); letter-spacing: 0.05em; }}
+        .sync-status {{ position: fixed; top: 10px; right: 10px; padding: 10px 14px; background: var(--exito); color: white; border-radius: 8px; font-size: 0.85em; font-weight: 600; }}
     </style>
 </head>
 <body>
@@ -91,9 +101,9 @@ html_header = f'''<!DOCTYPE html>
                 <thead>
                     <tr>
                         <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Categoria</th><th>Fecha Entrega</th><th>Numero Factura</th><th>Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th>
-                        <th style="background: #c8e6c9; white-space: normal; max-width: 100px;" title="Solicitud Precio → Entrega Precio">📅 SLA1<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Entrega</div></th>
-                        <th style="background: #ffe0b2; white-space: normal; max-width: 100px;" title="Entrega Precio → Solicitud Factura">⏰ SLA2<div style="font-size: 0.65em; line-height: 1.2;">Entrega→Solicitud</div></th>
-                        <th style="background: #bbdefb; white-space: normal; max-width: 100px;" title="Solicitud Factura → Factura CND">📬 SLA3<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Factura</div></th>
+                        <th style="background: #41B437; white-space: normal; max-width: 100px;" title="Solicitud Precio → Entrega Precio">📅 SLA1<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Entrega</div></th>
+                        <th style="background: #FA410A; white-space: normal; max-width: 100px; color: white;" title="Entrega Precio → Solicitud Factura">⏰ SLA2<div style="font-size: 0.65em; line-height: 1.2;">Entrega→Solicitud</div></th>
+                        <th style="background: #001EF0; white-space: normal; max-width: 100px; color: white;" title="Solicitud Factura → Factura CND">📬 SLA3<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Factura</div></th>
                     </tr>
                 </thead>
                 <tbody id="tabla-body"></tbody>
@@ -272,9 +282,9 @@ function mostrarTabla() {{
             <td>${{v.FED ? "✓" : ""}}</td><td>${{v["Confirmación Genessis"] === "Ok" ? "✓" : ""}}</td>
             <td>${{v["Fecha Solicitud Precio"] || "-"}}</td><td>${{v["Fecha Entrega Precio"] || "-"}}</td>
             <td>${{v["Fecha Solicitud Factura CND"] || "-"}}</td><td>${{v["Fecha Factura CND"] || "-"}}</td>
-            <td style="background: ${{s1 > 0 ? "#e8f5e9" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">📅</div><strong>${{s1 > 0 ? s1 + " d" : "-"}}</strong></td>
-            <td style="background: ${{s2 > 0 ? "#fff3e0" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">⏰</div><strong>${{s2 > 0 ? s2 + " d" : "-"}}</strong></td>
-            <td style="background: ${{s3 > 0 ? "#e3f2fd" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">📬</div><strong>${{s3 > 0 ? s3 + " d" : "-"}}</strong></td>`;
+            <td style="background: ${{s1 > 0 ? "#e8f5e9" : "#fff"}}; text-align: center; color: var(--negro);"><div style="font-size: 1.1em;">📅</div><strong>${{s1 > 0 ? s1 + " d" : "-"}}</strong></td>
+            <td style="background: ${{s2 > 0 ? "#FAB49B" : "#fff"}}; text-align: center; color: var(--negro);"><div style="font-size: 1.1em;">⏰</div><strong>${{s2 > 0 ? s2 + " d" : "-"}}</strong></td>
+            <td style="background: ${{s3 > 0 ? "#8FA0FF" : "#fff"}}; text-align: center; color: var(--negro);"><div style="font-size: 1.1em;">📬</div><strong>${{s3 > 0 ? s3 + " d" : "-"}}</strong></td>`;
         tb.appendChild(tr);
     }});
 }}

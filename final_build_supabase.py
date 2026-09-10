@@ -1,4 +1,15 @@
-<!DOCTYPE html>
+#!/usr/bin/env python3
+import json
+
+# Credenciales de Supabase (REEMPLAZAR CON TUS VALORES)
+SUPABASE_URL = "https://umftwvbvzqnkuiqkdmya.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_aw4D6BUaKM6iTWCbqLk64A_an8G91cb"
+
+# Leer datos (solo para fallback)
+with open('cpd_data_v3.json', 'r', encoding='utf-8') as f:
+    datos = json.load(f)
+
+html_header = f'''<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -6,36 +17,36 @@
     <title>Control Entregas Vehiculos a CPD</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --navy: #1a3a6b; --celeste: #2563a8; --gris-claro: #f0f3f8; --rojo: #d32f2f; --verde: #2e7d32; }
-        body { font-family: Segoe UI, sans-serif; background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: #1a1f2e; min-height: 100vh; padding: 20px; }
-        .container { max-width: 1800px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: white; padding: 30px 40px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
-        .header h1 { font-size: 2em; margin-bottom: 8px; }
-        .header p { font-size: 0.9em; opacity: 0.9; }
-        .resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card-stat { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border-left: 4px solid var(--celeste); }
-        .card-stat h3 { font-size: 0.75em; color: #1a1f2e; margin-bottom: 8px; text-transform: uppercase; }
-        .card-stat .valor { font-size: 1.8em; font-weight: bold; color: var(--navy); }
-        .filtros-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
-        .filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 15px; }
-        select, input { width: 100%; padding: 8px 12px; border: 1px solid #d1d9e6; border-radius: 6px; }
-        button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-right: 10px; }
-        .btn-primary { background: var(--celeste); color: white; }
-        .btn-secondary { background: var(--gris-claro); color: var(--navy); }
-        .btn-success { background: var(--verde); color: white; }
-        .alertas-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
-        .table-container { background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        th { background: var(--navy); color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
-        td { padding: 12px; border-bottom: 1px solid var(--gris-claro); }
-        tr:hover { background: var(--gris-claro); }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }
-        .modal.show { display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--navy); }
-        .sync-status { position: fixed; top: 10px; right: 10px; padding: 8px 12px; background: #4CAF50; color: white; border-radius: 4px; font-size: 0.85em; }
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        :root {{ --navy: #1a3a6b; --celeste: #2563a8; --gris-claro: #f0f3f8; --rojo: #d32f2f; --verde: #2e7d32; }}
+        body {{ font-family: Segoe UI, sans-serif; background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: #1a1f2e; min-height: 100vh; padding: 20px; }}
+        .container {{ max-width: 1800px; margin: 0 auto; }}
+        .header {{ background: linear-gradient(135deg, #1a3a6b 0%, #0f2847 100%); color: white; padding: 30px 40px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }}
+        .header h1 {{ font-size: 2em; margin-bottom: 8px; }}
+        .header p {{ font-size: 0.9em; opacity: 0.9; }}
+        .resumen-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }}
+        .card-stat {{ background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border-left: 4px solid var(--celeste); }}
+        .card-stat h3 {{ font-size: 0.75em; color: #1a1f2e; margin-bottom: 8px; text-transform: uppercase; }}
+        .card-stat .valor {{ font-size: 1.8em; font-weight: bold; color: var(--navy); }}
+        .filtros-section {{ background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }}
+        .filtros-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 15px; }}
+        select, input {{ width: 100%; padding: 8px 12px; border: 1px solid #d1d9e6; border-radius: 6px; }}
+        button {{ padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-right: 10px; }}
+        .btn-primary {{ background: var(--celeste); color: white; }}
+        .btn-secondary {{ background: var(--gris-claro); color: var(--navy); }}
+        .btn-success {{ background: var(--verde); color: white; }}
+        .alertas-section {{ background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }}
+        .table-container {{ background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 30px; }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 0.9em; }}
+        th {{ background: var(--navy); color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }}
+        td {{ padding: 12px; border-bottom: 1px solid var(--gris-claro); }}
+        tr:hover {{ background: var(--gris-claro); }}
+        .modal {{ display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }}
+        .modal.show {{ display: flex; align-items: center; justify-content: center; }}
+        .modal-content {{ background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; }}
+        .form-group {{ margin-bottom: 15px; }}
+        .form-group label {{ display: block; margin-bottom: 5px; font-weight: 600; color: var(--navy); }}
+        .sync-status {{ position: fixed; top: 10px; right: 10px; padding: 8px 12px; background: #4CAF50; color: white; border-radius: 4px; font-size: 0.85em; }}
     </style>
 </head>
 <body>
@@ -135,140 +146,140 @@
     </div>
 
     <script>
-const SUPABASE_URL = "https://umftwvbvzqnkuiqkdmya.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_aw4D6BUaKM6iTWCbqLk64A_an8G91cb";
+const SUPABASE_URL = "{SUPABASE_URL}";
+const SUPABASE_ANON_KEY = "{SUPABASE_ANON_KEY}";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let datosOriginales = [];
 let datosFiltrados = [];
 let modalEnEdicion = null;
 
-function actualizarSyncStatus(estado) {
+function actualizarSyncStatus(estado) {{
     const el = document.querySelector('.sync-status');
-    if (estado === 'conectado') {
+    if (estado === 'conectado') {{
         el.textContent = '✅ Sincronizado';
         el.style.background = '#4CAF50';
-    } else if (estado === 'sincronizando') {
+    }} else if (estado === 'sincronizando') {{
         el.textContent = '🔄 Sincronizando...';
         el.style.background = '#FFC107';
-    } else {
+    }} else {{
         el.textContent = '❌ Error de conexión';
         el.style.background = '#f44336';
-    }
-}
+    }}
+}}
 
-async function cargarDelSupabase() {
-    try {
+async function cargarDelSupabase() {{
+    try {{
         actualizarSyncStatus('sincronizando');
-        const { data, error } = await supabase.from('vehiculos').select('*');
+        const {{ data, error }} = await supabase.from('vehiculos').select('*');
         if (error) throw error;
         datosOriginales = data || [];
         datosFiltrados = [...datosOriginales];
         actualizarSyncStatus('conectado');
         suscribirseACambios();
-    } catch (error) {
+    }} catch (error) {{
         console.error('Error cargando datos:', error);
         actualizarSyncStatus('error');
         // Fallback: usar datos embebidos
         datosFiltrados = [...datosOriginales];
-    }
-}
+    }}
+}}
 
-function suscribirseACambios() {
-    try {
+function suscribirseACambios() {{
+    try {{
         supabase
             .channel('vehiculos-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'vehiculos' }, (payload) => {
+            .on('postgres_changes', {{ event: '*', schema: 'public', table: 'vehiculos' }}, (payload) => {{
                 console.log('Cambio recibido:', payload);
                 cargarDelSupabase();
-            })
+            }})
             .subscribe();
-    } catch (e) {
+    }} catch (e) {{
         console.log('Realtime no disponible, usando polling');
-    }
-}
+    }}
+}}
 
-async function guardarEnSupabase(vehiculo) {
-    try {
+async function guardarEnSupabase(vehiculo) {{
+    try {{
         const existe = datosOriginales.find(v => v.Patente === vehiculo.Patente);
-        if (existe) {
+        if (existe) {{
             await supabase.from('vehiculos').delete().eq('Patente', vehiculo.Patente);
             await new Promise(r => setTimeout(r, 500));
             await supabase.from('vehiculos').insert([vehiculo]);
-        } else {
+        }} else {{
             await supabase.from('vehiculos').insert([vehiculo]);
-        }
+        }}
         await cargarDelSupabase();
-    } catch (error) {
+    }} catch (error) {{
         console.error('Error guardando:', error);
         alert('Error al guardar');
-    }
-}
+    }}
+}}
 
-function calcularSLA(f1, f2) {
+function calcularSLA(f1, f2) {{
     if (!f1 || !f2) return 0;
     const d1 = new Date(f1);
     const d2 = new Date(f2);
     return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
-}
+}}
 
-function poblarFiltroMarcas() {
+function poblarFiltroMarcas() {{
     const marcas = [...new Set(datosOriginales.map(d => d.Marca))].sort();
     const sel1 = document.getElementById("filtro-marca");
     const sel2 = document.getElementById("new-marca");
-    marcas.forEach(m => {
+    marcas.forEach(m => {{
         const opt1 = document.createElement("option");
         opt1.value = m; opt1.textContent = m;
         sel1.appendChild(opt1);
         const opt2 = document.createElement("option");
         opt2.value = m; opt2.textContent = m;
         sel2.appendChild(opt2);
-    });
-}
+    }});
+}}
 
-function mostrarResumen() {
+function mostrarResumen() {{
     const t = datosOriginales.length;
     const g = datosOriginales.filter(d => d["Confirmación Genessis"] === "Ok").length;
     const l = datosOriginales.filter(d => d["Copia llave"]).length;
     const f = datosOriginales.filter(d => d.FED).length;
     const fc = datosOriginales.filter(d => d["Fecha Factura CND"]).length;
     document.getElementById("resumen-grid").innerHTML = `
-        <div class="card-stat"><h3>Total</h3><div class="valor">${t}</div></div>
-        <div class="card-stat"><h3>Genesis OK</h3><div class="valor">${g}</div></div>
-        <div class="card-stat"><h3>Sin Copia</h3><div class="valor">${t-l}</div></div>
-        <div class="card-stat"><h3>Sin FED</h3><div class="valor">${t-f}</div></div>
-        <div class="card-stat"><h3>Con Factura</h3><div class="valor">${fc}</div></div>
+        <div class="card-stat"><h3>Total</h3><div class="valor">${{t}}</div></div>
+        <div class="card-stat"><h3>Genesis OK</h3><div class="valor">${{g}}</div></div>
+        <div class="card-stat"><h3>Sin Copia</h3><div class="valor">${{t-l}}</div></div>
+        <div class="card-stat"><h3>Sin FED</h3><div class="valor">${{t-f}}</div></div>
+        <div class="card-stat"><h3>Con Factura</h3><div class="valor">${{fc}}</div></div>
     `;
     const sl = t - l, sf = t - f;
     document.getElementById("alertas-section").innerHTML = `<h3>Alertas</h3>
-        ${sl > 0 ? "<div style='padding: 10px; background: #fff3e0; margin: 5px 0;'><strong>" + sl + "</strong> sin copia de llave</div>" : ""}
-        ${sf > 0 ? "<div style='padding: 10px; background: #fff3e0; margin: 5px 0;'><strong>" + sf + "</strong> sin FED</div>" : ""}
-        ${sl === 0 && sf === 0 ? "<div style='color: green; font-weight: bold;'>Todo en orden</div>" : ""}
+        ${{sl > 0 ? "<div style='padding: 10px; background: #fff3e0; margin: 5px 0;'><strong>" + sl + "</strong> sin copia de llave</div>" : ""}}
+        ${{sf > 0 ? "<div style='padding: 10px; background: #fff3e0; margin: 5px 0;'><strong>" + sf + "</strong> sin FED</div>" : ""}}
+        ${{sl === 0 && sf === 0 ? "<div style='color: green; font-weight: bold;'>Todo en orden</div>" : ""}}
     `;
-}
+}}
 
-function mostrarTabla() {
+function mostrarTabla() {{
     const tb = document.getElementById("tabla-body");
     tb.innerHTML = "";
-    datosFiltrados.forEach(v => {
+    datosFiltrados.forEach(v => {{
         const s1 = calcularSLA(v["Fecha Solicitud Precio"], v["Fecha Entrega Precio"]);
         const s2 = calcularSLA(v["Fecha Entrega Precio"], v["Fecha Solicitud Factura CND"]);
         const s3 = calcularSLA(v["Fecha Solicitud Factura CND"], v["Fecha Factura CND"]);
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
-            <td>${v.Patente}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo.substring(0, 25)}</td>
-            <td>${v.Categoria}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
-            <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
-            <td>${v["Fecha Solicitud Precio"] || "-"}</td><td>${v["Fecha Entrega Precio"] || "-"}</td>
-            <td>${v["Fecha Solicitud Factura CND"] || "-"}</td><td>${v["Fecha Factura CND"] || "-"}</td>
-            <td style="background: ${s1 > 0 ? "#e8f5e9" : "#fff"}; text-align: center;"><div style="font-size: 1.1em;">📅</div><strong>${s1 > 0 ? s1 + " d" : "-"}</strong></td>
-            <td style="background: ${s2 > 0 ? "#fff3e0" : "#fff"}; text-align: center;"><div style="font-size: 1.1em;">⏰</div><strong>${s2 > 0 ? s2 + " d" : "-"}</strong></td>
-            <td style="background: ${s3 > 0 ? "#e3f2fd" : "#fff"}; text-align: center;"><div style="font-size: 1.1em;">📬</div><strong>${s3 > 0 ? s3 + " d" : "-"}</strong></td>`;
+        tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${{v.Patente}}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
+            <td>${{v.Patente}}</td><td>${{v.Marca}}</td><td><strong>${{v.Gerencia}}</strong></td><td>${{v.Modelo.substring(0, 25)}}</td>
+            <td>${{v.Categoria}}</td><td>${{v["Fecha Entrega a CPD"]}}</td><td>${{v["Numero Factura"] || "-"}}</td><td>${{v["Copia llave"] ? "✓" : ""}}</td>
+            <td>${{v.FED ? "✓" : ""}}</td><td>${{v["Confirmación Genessis"] === "Ok" ? "✓" : ""}}</td>
+            <td>${{v["Fecha Solicitud Precio"] || "-"}}</td><td>${{v["Fecha Entrega Precio"] || "-"}}</td>
+            <td>${{v["Fecha Solicitud Factura CND"] || "-"}}</td><td>${{v["Fecha Factura CND"] || "-"}}</td>
+            <td style="background: ${{s1 > 0 ? "#e8f5e9" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">📅</div><strong>${{s1 > 0 ? s1 + " d" : "-"}}</strong></td>
+            <td style="background: ${{s2 > 0 ? "#fff3e0" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">⏰</div><strong>${{s2 > 0 ? s2 + " d" : "-"}}</strong></td>
+            <td style="background: ${{s3 > 0 ? "#e3f2fd" : "#fff"}}; text-align: center;"><div style="font-size: 1.1em;">📬</div><strong>${{s3 > 0 ? s3 + " d" : "-"}}</strong></td>`;
         tb.appendChild(tr);
-    });
-}
+    }});
+}}
 
-function aplicarFiltros() {
+function aplicarFiltros() {{
     const m = document.getElementById("filtro-marca").value;
     const g = document.getElementById("filtro-gerencia").value;
     const c = document.getElementById("filtro-categoria").value;
@@ -278,7 +289,7 @@ function aplicarFiltros() {
     const gen = document.getElementById("filtro-genesis").value;
     const b = document.getElementById("filtro-busqueda").value.toUpperCase();
 
-    datosFiltrados = datosOriginales.filter(v => {
+    datosFiltrados = datosOriginales.filter(v => {{
         const tieneFechaEntrega = !fe || v["Fecha Entrega a CPD"] >= fe;
         const tieneL = l === "" || (l === "si" && v["Copia llave"]) || (l === "no" && !v["Copia llave"]);
         const tieneF = f === "" || (f === "si" && v.FED) || (f === "no" && !v.FED);
@@ -287,20 +298,20 @@ function aplicarFiltros() {
 
         return (!m || v.Marca === m) && (!g || v.Gerencia === g) && (!c || v.Categoria === c) &&
                tieneFechaEntrega && tieneL && tieneF && tieneGen && cumpleBusqueda;
-    });
+    }});
     mostrarTabla();
-}
+}}
 
-function limpiarFiltros() {
+function limpiarFiltros() {{
     document.getElementById("filtro-marca").value = "";
     document.getElementById("filtro-gerencia").value = "";
     document.getElementById("filtro-categoria").value = "";
     document.getElementById("filtro-busqueda").value = "";
     datosFiltrados = [...datosOriginales];
     mostrarTabla();
-}
+}}
 
-function abrirModalEditar(patente) {
+function abrirModalEditar(patente) {{
     const v = datosOriginales.find(x => x.Patente === patente);
     if (!v) return;
     modalEnEdicion = patente;
@@ -315,34 +326,34 @@ function abrirModalEditar(patente) {
     document.getElementById("edit-fecha-sol-factura").value = v["Fecha Solicitud Factura CND"] || "";
     document.getElementById("edit-fecha-factura").value = v["Fecha Factura CND"] || "";
     document.getElementById("modalEditar").classList.add("show");
-}
+}}
 
-function abrirModalNuevo() {
+function abrirModalNuevo() {{
     document.getElementById("formNuevo").reset();
     document.getElementById("modalNuevo").classList.add("show");
-}
+}}
 
-function cerrarModal(m) {
+function cerrarModal(m) {{
     document.getElementById(m).classList.remove("show");
     modalEnEdicion = null;
-}
+}}
 
-async function guardarEdicion(e) {
+async function guardarEdicion(e) {{
     e.preventDefault();
     const v = datosOriginales.find(x => x.Patente === modalEnEdicion);
     if (!v) return;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
     const facturaSino = document.getElementById("edit-factura-sino").value;
-    if (facturaSino === "si" && !v["Fecha Factura CND"]) {
+    if (facturaSino === "si" && !v["Fecha Factura CND"]) {{
         const hoy = new Date().toISOString().split('T')[0];
         document.getElementById("edit-fecha-factura").value = hoy;
         v["Fecha Factura CND"] = hoy;
-    } else if (facturaSino === "no") {
+    }} else if (facturaSino === "no") {{
         document.getElementById("edit-fecha-factura").value = "";
         v["Fecha Factura CND"] = "";
-    } else {
+    }} else {{
         v["Fecha Factura CND"] = document.getElementById("edit-fecha-factura").value;
-    }
+    }}
     v["Copia llave"] = document.getElementById("edit-copia-llave").value;
     v.FED = document.getElementById("edit-fed").value;
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
@@ -354,24 +365,24 @@ async function guardarEdicion(e) {
     cerrarModal("modalEditar");
     mostrarTabla();
     mostrarResumen();
-}
+}}
 
-function getGerencia(m) {
+function getGerencia(m) {{
     const dc = ["KIA", "SUBARU", "DFSK", "DONGFENG", "SINOTRUK"];
     const nb = ["OPEL", "PEUGEOT", "CITROEN", "NISSAN", "GEELY", "LEAD MOTORS", "MG", "LYNK & CO"];
     const mu = m.toUpperCase();
     return dc.some(d => mu.includes(d)) ? "DC" : nb.some(n => mu.includes(n)) ? "NB" : "SIN ASIGNAR";
-}
+}}
 
-async function agregarVehiculo(e) {
+async function agregarVehiculo(e) {{
     e.preventDefault();
     const p = document.getElementById("new-patente").value;
-    if (datosOriginales.find(x => x.Patente === p)) {
+    if (datosOriginales.find(x => x.Patente === p)) {{
         alert("Ya existe");
         return;
-    }
+    }}
     const m = document.getElementById("new-marca").value;
-    const nuevoVehiculo = {
+    const nuevoVehiculo = {{
         Marca: m, Modelo: document.getElementById("new-modelo").value, Patente: p,
         VIN: document.getElementById("new-vin").value, Responsable: "NUEVO", Sucursal: "PENDIENTE",
         "Fecha Entrega a CPD": document.getElementById("new-fecha-entrega").value,
@@ -387,19 +398,29 @@ async function agregarVehiculo(e) {
         "Fecha Solicitud Factura CND": document.getElementById("new-fecha-sol-factura").value,
         "Fecha Factura CND": document.getElementById("new-fecha-factura").value,
         SLA_Precio_Dias: 0, SLA_Factura_Dias: 0, SLA_Pago_Dias: 0
-    };
+    }};
     await guardarEnSupabase(nuevoVehiculo);
     cerrarModal("modalNuevo");
     limpiarFiltros();
     mostrarResumen();
     mostrarTabla();
-}
+}}
 
-cargarDelSupabase().then(() => {
+cargarDelSupabase().then(() => {{
     mostrarResumen();
     poblarFiltroMarcas();
     mostrarTabla();
-});
+}});
     </script>
 </body>
 </html>
+'''
+
+# Generar HTML (sin JSON embebido, se carga desde Supabase)
+with open('index_supabase.html', 'w', encoding='utf-8') as f:
+    f.write(html_header)
+
+print("OK: HTML con Supabase generado: index_supabase.html")
+print("   - Datos se cargan desde Supabase automaticamente")
+print("   - Sincronizacion en tiempo real activada")
+print("   - Cambios guardados en Supabase")

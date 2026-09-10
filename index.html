@@ -160,7 +160,7 @@ function actualizarSyncStatus(estado) {
 async function cargarDelSupabase() {
     try {
         actualizarSyncStatus('sincronizando');
-        const { data, error } = await supabase.from('vehiculos').select('*', { count: 'exact' });
+        const { data, error } = await supabase.from('vehiculos').select('id, *');
         if (error) throw error;
         datosOriginales = data || [];
         datosFiltrados = [...datosOriginales];

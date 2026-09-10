@@ -253,7 +253,7 @@ function mostrarTabla() {
         const s2 = calcularSLA(v["Fecha Entrega Precio"], v["Fecha Solicitud Factura CND"]);
         const s3 = calcularSLA(v["Fecha Solicitud Factura CND"], v["Fecha Factura CND"]);
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
+        tr.innerHTML = `<td><button class="btn-primary btn-editar" data-patente="${v.Patente}" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
             <td>${v.Patente}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo.substring(0, 25)}</td>
             <td>${v.Categoria}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
             <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
@@ -263,6 +263,9 @@ function mostrarTabla() {
             <td style="background: ${s2 > 0 ? "#fff3e0" : "#fff"}; text-align: center;"><div style="font-size: 1.1em;">⏰</div><strong>${s2 > 0 ? s2 + " d" : "-"}</strong></td>
             <td style="background: ${s3 > 0 ? "#e3f2fd" : "#fff"}; text-align: center;"><div style="font-size: 1.1em;">📬</div><strong>${s3 > 0 ? s3 + " d" : "-"}</strong></td>`;
         tb.appendChild(tr);
+    });
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.addEventListener('click', () => abrirModalEditar(btn.getAttribute('data-patente')));
     });
 }
 

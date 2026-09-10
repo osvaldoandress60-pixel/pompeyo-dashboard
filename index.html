@@ -190,9 +190,9 @@ function suscribirseACambios() {
 
 async function guardarEnSupabase(vehiculo) {
     try {
-        const existe = datosOriginales.find(v => v.id === vehiculo.id);
+        const existe = datosOriginales.find(v => v.Patente === vehiculo.Patente);
         if (existe) {
-            await supabase.from('vehiculos').update(vehiculo).eq('id', vehiculo.id);
+            await supabase.from('vehiculos').update(vehiculo).eq('Patente', vehiculo.Patente);
         } else {
             await supabase.from('vehiculos').insert([vehiculo]);
         }

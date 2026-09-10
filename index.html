@@ -253,7 +253,7 @@ function mostrarTabla() {
         const s2 = calcularSLA(v["Fecha Entrega Precio"], v["Fecha Solicitud Factura CND"]);
         const s3 = calcularSLA(v["Fecha Solicitud Factura CND"], v["Fecha Factura CND"]);
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.id}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
+        tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
             <td>${v.Patente}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo.substring(0, 25)}</td>
             <td>${v.Categoria}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
             <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
@@ -298,10 +298,10 @@ function limpiarFiltros() {
     mostrarTabla();
 }
 
-function abrirModalEditar(id) {
-    const v = datosOriginales.find(x => x.id === id);
+function abrirModalEditar(patente) {
+    const v = datosOriginales.find(x => x.Patente === patente);
     if (!v) return;
-    modalEnEdicion = id;
+    modalEnEdicion = patente;
     document.getElementById("edit-patente").value = v.Patente;
     document.getElementById("edit-numero-factura").value = v["Numero Factura"] || "";
     document.getElementById("edit-factura-sino").value = v["Fecha Factura CND"] ? "si" : "no";
@@ -327,7 +327,7 @@ function cerrarModal(m) {
 
 async function guardarEdicion(e) {
     e.preventDefault();
-    const v = datosOriginales.find(x => x.id === modalEnEdicion);
+    const v = datosOriginales.find(x => x.Patente === modalEnEdicion);
     if (!v) return;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
     const facturaSino = document.getElementById("edit-factura-sino").value;

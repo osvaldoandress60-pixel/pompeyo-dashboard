@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Entregas Vehiculos a CPD</title>
+    <title>Control Entregas Vehiculos a CPD v2</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -279,6 +283,36 @@
             font-size: 0.85em;
             font-weight: 600;
         }
+        body[data-theme="dark"] {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        body[data-theme="dark"] .card-stat,
+        body[data-theme="dark"] .filtros-section,
+        body[data-theme="dark"] .table-container table,
+        body[data-theme="dark"] .modal-content,
+        body[data-theme="dark"] div[style*="background: white"] {
+            background: #2a2a2a !important;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+        body[data-theme="dark"] table {
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+        body[data-theme="dark"] thead tr {
+            background: #001EF0;
+            color: white;
+        }
+        body[data-theme="dark"] tbody tr:hover {
+            background: #3a3a3a;
+        }
+        body[data-theme="dark"] input,
+        body[data-theme="dark"] select {
+            background: #3a3a3a;
+            color: #e0e0e0;
+            border-color: #444;
+        }
     </style>
 </head>
 <body>
@@ -310,20 +344,41 @@
                 <div><label>Genesis</label><select id="filtro-genesis"><option value="">Todas</option><option value="Ok">Ok</option><option value="Sin">Sin Confirmar</option></select></div>
                 <div><label>Busqueda</label><input type="text" id="filtro-busqueda" placeholder="Patente..."></div>
             </div>
-            <div>
-                <button class="btn-primary" onclick="aplicarFiltros()">Aplicar</button>
-                <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
-                <button class="btn-success" onclick="abrirModalNuevo()">+ Agregar</button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <div>
+                    <button class="btn-primary" onclick="aplicarFiltros()">Aplicar</button>
+                    <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
+                    <button class="btn-success" onclick="abrirModalNuevo()">+ Agregar</button>
+                </div>
+                <div style="margin-left: auto;">
+                    <button class="btn-secondary" onclick="exportarExcel()" title="Descargar datos en Excel">📥 Exportar Excel</button>
+                    <button class="btn-secondary" onclick="toggleModoOscuro()" title="Cambiar tema" style="margin-left: 10px;">🌙 Modo Oscuro</button>
+                </div>
             </div>
         </div>
 
         <div class="alertas-section" id="alertas-section"></div>
 
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; margin-top: 20px;" id="graficos-section">
+            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
+                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">📊 Por Gerencia</h3>
+                <canvas id="chart-gerencia" width="300" height="150"></canvas>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
+                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">📈 Por Categoria</h3>
+                <canvas id="chart-categoria" width="300" height="150"></canvas>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
+                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">✅ Estados SLA</h3>
+                <canvas id="chart-sla" width="300" height="150"></canvas>
+            </div>
+        </div>
+
         <div class="table-container">
             <table id="tabla-vehiculos">
                 <thead>
                     <tr>
-                        <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Categoria</th><th>Fecha Entrega</th><th>Numero Factura</th><th>Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th>
+                        <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Categoria</th><th>Fecha Entrega</th><th>Numero Factura</th><th>Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Precio Compra Usados</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th>
                         <th style="background: #41B437; white-space: normal; max-width: 100px;" title="Solicitud Precio → Entrega Precio">📅 SLA1<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Entrega</div></th>
                         <th style="background: #FA410A; white-space: normal; max-width: 100px; color: white;" title="Entrega Precio → Solicitud Factura">⏰ SLA2<div style="font-size: 0.65em; line-height: 1.2;">Entrega→Solicitud</div></th>
                         <th style="background: #001EF0; white-space: normal; max-width: 100px; color: white;" title="Solicitud Factura → Factura CND">📬 SLA3<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Factura</div></th>
@@ -345,6 +400,7 @@
                 <div class="form-group"><label>FED</label><input type="text" id="edit-fed"></div>
                 <div class="form-group"><label>Genesis</label><select id="edit-genesis"><option value="">Seleccionar</option><option value="Ok">Ok</option><option value="En Renting">En Renting</option></select></div>
                 <div class="form-group"><label>Solicitud Precio</label><input type="date" id="edit-fecha-sol-precio"></div>
+                <div class="form-group"><label>Precio Compra Usados</label><input type="text" id="edit-precio-compra-usados"></div>
                 <div class="form-group"><label>Entrega Precio</label><input type="date" id="edit-fecha-entrega-precio"></div>
                 <div class="form-group"><label>Solicitud Factura CND</label><input type="date" id="edit-fecha-sol-factura"></div>
                 <div class="form-group"><label>Factura CND</label><input type="date" id="edit-fecha-factura"></div>
@@ -441,6 +497,20 @@ async function guardarEnSupabase(vehiculo) {
         } else {
             await supabase.from('vehiculos').insert([vehiculo]);
         }
+
+        // Agregar a cola de emails cuando se inserta un vehículo nuevo
+        if (!existe) {
+            const queueItem = {
+                patente: vehiculo.Patente,
+                marca: vehiculo.Marca,
+                modelo: vehiculo.Modelo,
+                categoria: vehiculo.Categoria
+            };
+            supabase.from('email_queue').insert([queueItem])
+                .then(r => console.log('📧 Email en cola:', vehiculo.Patente))
+                .catch(e => console.error('❌ Error en cola:', e.message));
+        }
+
         await cargarDelSupabase();
     } catch (error) {
         console.error('Error guardando:', error);
@@ -502,7 +572,7 @@ function mostrarTabla() {
             <td>${v.Patente}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo.substring(0, 25)}</td>
             <td>${v.Categoria}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
             <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
-            <td>${v["Fecha Solicitud Precio"] || "-"}</td><td>${v["Fecha Entrega Precio"] || "-"}</td>
+            <td>${v["Fecha Solicitud Precio"] || "-"}</td><td>${v["Precio Compra Usados"] || "-"}</td><td>${v["Fecha Entrega Precio"] || "-"}</td>
             <td>${v["Fecha Solicitud Factura CND"] || "-"}</td><td>${v["Fecha Factura CND"] || "-"}</td>
             <td style="background: ${s1 > 0 ? "#e8f5e9" : "#fff"}; text-align: center; color: var(--negro);"><div style="font-size: 1.1em;">📅</div><strong>${s1 > 0 ? s1 + " d" : "-"}</strong></td>
             <td style="background: ${s2 > 0 ? "#FAB49B" : "#fff"}; text-align: center; color: var(--negro);"><div style="font-size: 1.1em;">⏰</div><strong>${s2 > 0 ? s2 + " d" : "-"}</strong></td>
@@ -560,6 +630,7 @@ function abrirModalEditar(patente) {
     document.getElementById("edit-fed").value = v.FED || "";
     document.getElementById("edit-genesis").value = v["Confirmación Genessis"] || "";
     document.getElementById("edit-fecha-sol-precio").value = v["Fecha Solicitud Precio"] || "";
+    document.getElementById("edit-precio-compra-usados").value = v["Precio Compra Usados"] || "";
     document.getElementById("edit-fecha-entrega-precio").value = v["Fecha Entrega Precio"] || "";
     document.getElementById("edit-fecha-sol-factura").value = v["Fecha Solicitud Factura CND"] || "";
     document.getElementById("edit-fecha-factura").value = v["Fecha Factura CND"] || "";
@@ -596,6 +667,7 @@ async function guardarEdicion(e) {
     v.FED = document.getElementById("edit-fed").value;
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
     v["Fecha Solicitud Precio"] = document.getElementById("edit-fecha-sol-precio").value;
+    v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
     v["Fecha Entrega Precio"] = document.getElementById("edit-fecha-entrega-precio").value;
     v["Fecha Solicitud Factura CND"] = document.getElementById("edit-fecha-sol-factura").value;
     v["Fecha Factura CND"] = document.getElementById("edit-fecha-factura").value;
@@ -644,10 +716,131 @@ async function agregarVehiculo(e) {
     mostrarTabla();
 }
 
+// Exportar a Excel
+function exportarExcel() {
+    let html = '<table border="1"><tr>';
+    document.querySelectorAll('#tabla-vehiculos thead th').forEach(th => {
+        html += '<th>' + th.textContent + '</th>';
+    });
+    html += '</tr>';
+    document.querySelectorAll('#tabla-vehiculos tbody tr').forEach(tr => {
+        html += '<tr>';
+        tr.querySelectorAll('td').forEach(td => html += '<td>' + td.textContent + '</td>');
+        html += '</tr>';
+    });
+    html += '</table>';
+    const blob = new Blob(['﻿' + html], {type: 'application/vnd.ms-excel'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'CPD_' + new Date().toISOString().split('T')[0] + '.xls';
+    a.click();
+}
+
+// Modo Oscuro
+function toggleModoOscuro() {
+    const body = document.body;
+    const esDark = body.getAttribute('data-theme') === 'dark';
+    body.setAttribute('data-theme', esDark ? 'light' : 'dark');
+    localStorage.setItem('theme', esDark ? 'light' : 'dark');
+}
+
+// Cargar tema guardado
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.setAttribute('data-theme', 'dark');
+}
+
+// Busqueda en tiempo real
+document.getElementById('filtro-busqueda').addEventListener('input', function() {
+    aplicarFiltros();
+});
+
+// Dibujar gráficos
+function dibujarGraficos() {
+    const chartConfig = {responsive: true, maintainAspectRatio: true};
+
+    // Gráfico por Gerencia
+    const gerenciaData = datosFiltrados.reduce((acc, v) => {
+        acc[v.Gerencia] = (acc[v.Gerencia] || 0) + 1;
+        return acc;
+    }, {});
+
+    if (window.chartGerencia) window.chartGerencia.destroy();
+    const ctxG = document.getElementById('chart-gerencia').getContext('2d');
+    window.chartGerencia = new Chart(ctxG, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(gerenciaData),
+            datasets: [{
+                data: Object.values(gerenciaData),
+                backgroundColor: ['#001EF0', '#FA410A'],
+                borderColor: ['white'],
+                borderWidth: 2
+            }]
+        },
+        options: chartConfig
+    });
+
+    // Gráfico por Categoria
+    const categData = datosFiltrados.reduce((acc, v) => {
+        acc[v.Categoria] = (acc[v.Categoria] || 0) + 1;
+        return acc;
+    }, {});
+
+    if (window.chartCateg) window.chartCateg.destroy();
+    const ctxC = document.getElementById('chart-categoria').getContext('2d');
+    window.chartCateg = new Chart(ctxC, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(categData),
+            datasets: [{
+                label: 'Cantidad',
+                data: Object.values(categData),
+                backgroundColor: '#001EF0',
+                borderRadius: 5
+            }]
+        },
+        options: {...chartConfig, indexAxis: 'y'}
+    });
+
+    // Gráfico SLA
+    const slaData = {ok: 0, alerta: 0, vencido: 0};
+    datosFiltrados.forEach(v => {
+        const s1 = calcularSLA(v["Fecha Solicitud Precio"], v["Fecha Entrega Precio"]);
+        if (s1 > 0) slaData.ok++;
+        else if (s1 === 0) slaData.alerta++;
+        else slaData.vencido++;
+    });
+
+    if (window.chartSLA) window.chartSLA.destroy();
+    const ctxS = document.getElementById('chart-sla').getContext('2d');
+    window.chartSLA = new Chart(ctxS, {
+        type: 'pie',
+        data: {
+            labels: ['✓ Dentro SLA', '⚠️ Alerta', '❌ Vencido'],
+            datasets: [{
+                data: [slaData.ok, slaData.alerta, slaData.vencido],
+                backgroundColor: ['#41B437', '#FA410A', '#E00000'],
+                borderColor: ['white'],
+                borderWidth: 2
+            }]
+        },
+        options: chartConfig
+    });
+}
+
+// Hook para dibujar gráficos cuando cambian los datos
+const originalMostrarTabla = window.mostrarTabla;
+window.mostrarTabla = function() {
+    originalMostrarTabla();
+    setTimeout(dibujarGraficos, 100);
+};
+
 cargarDelSupabase().then(() => {
     mostrarResumen();
     poblarFiltroMarcas();
     mostrarTabla();
+    dibujarGraficos();
 });
     </script>
 </body>

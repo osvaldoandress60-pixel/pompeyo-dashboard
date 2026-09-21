@@ -359,18 +359,18 @@
 
         <div class="alertas-section" id="alertas-section"></div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; margin-top: 20px;" id="graficos-section">
-            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
-                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">📊 Por Gerencia</h3>
-                <canvas id="chart-gerencia" width="300" height="150"></canvas>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; margin-top: 15px;" id="graficos-section">
+            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
+                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">📊 Gerencia</h3>
+                <canvas id="chart-gerencia" style="max-height: 80px;"></canvas>
             </div>
-            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
-                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">📈 Por Categoria</h3>
-                <canvas id="chart-categoria" width="300" height="150"></canvas>
+            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
+                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">📈 Categoria</h3>
+                <canvas id="chart-categoria" style="max-height: 80px;"></canvas>
             </div>
-            <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);">
-                <h3 style="font-size: 0.9em; font-weight: 700; margin-bottom: 15px; color: #3A3F47;">✅ Estados SLA</h3>
-                <canvas id="chart-sla" width="300" height="150"></canvas>
+            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
+                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">✅ SLA</h3>
+                <canvas id="chart-sla" style="max-height: 80px;"></canvas>
             </div>
         </div>
 

@@ -336,7 +336,7 @@
             <div class="filtros-grid">
                 <div><label>Marca</label><select id="filtro-marca"><option value="">Todas</option></select></div>
                 <div><label>Gerencia</label><select id="filtro-gerencia"><option value="">Todas</option><option value="DC">DC</option><option value="NB">NB</option></select></div>
-                <div><label>Categoria</label><select id="filtro-categoria"><option value="">Todas</option><option value="RENTING">RENTING</option><option value="TEST CAR">TEST CAR</option><option value="COMPANY CAR">COMPANY CAR</option><option value="OTROS">OTROS</option></select></div>
+                <div><label>Seguro Baja</label><select id="filtro-seguro-baja"><option value="">Todas</option><option value="si">Con Seguro</option><option value="no">Sin Seguro</option></select></div>
                 <div><label>Fecha (desde)</label><input type="date" id="filtro-fecha-desde"></div>
                 <div><label>Fecha (hasta)</label><input type="date" id="filtro-fecha-hasta"></div>
                 <div><label>Copia Llave</label><select id="filtro-llave"><option value="">Todas</option><option value="si">Con Llave</option><option value="no">Sin Llave</option></select></div>
@@ -359,26 +359,11 @@
 
         <div class="alertas-section" id="alertas-section"></div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; margin-top: 15px;" id="graficos-section">
-            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
-                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">📊 Gerencia</h3>
-                <canvas id="chart-gerencia" style="max-height: 80px;"></canvas>
-            </div>
-            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
-                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">📈 Categoria</h3>
-                <canvas id="chart-categoria" style="max-height: 80px;"></canvas>
-            </div>
-            <div style="background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04);">
-                <h3 style="font-size: 0.75em; font-weight: 700; margin-bottom: 8px; color: #3A3F47;">✅ SLA</h3>
-                <canvas id="chart-sla" style="max-height: 80px;"></canvas>
-            </div>
-        </div>
-
         <div class="table-container">
             <table id="tabla-vehiculos">
                 <thead>
                     <tr>
-                        <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Categoria</th><th>Fecha Entrega</th><th>Numero Factura</th><th>Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Precio Compra Usados</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th>
+                        <th>Accion</th><th>Patente</th><th>Marca</th><th>Gerencia</th><th>Modelo</th><th>Seguro Baja</th><th>Fecha Entrega</th><th>Numero Factura</th><th>Llave</th><th>FED</th><th>Genesis</th><th>Sol Precio</th><th>Precio Compra Usados</th><th>Ent Precio</th><th>Sol Factura</th><th>Factura</th>
                         <th style="background: #41B437; white-space: normal; max-width: 100px;" title="Solicitud Precio → Entrega Precio">📅 SLA1<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Entrega</div></th>
                         <th style="background: #FA410A; white-space: normal; max-width: 100px; color: white;" title="Entrega Precio → Solicitud Factura">⏰ SLA2<div style="font-size: 0.65em; line-height: 1.2;">Entrega→Solicitud</div></th>
                         <th style="background: #001EF0; white-space: normal; max-width: 100px; color: white;" title="Solicitud Factura → Factura CND">📬 SLA3<div style="font-size: 0.65em; line-height: 1.2;">Solicitud→Factura</div></th>
@@ -398,6 +383,8 @@
                 <div class="form-group"><label>Factura SI/NO</label><select id="edit-factura-sino"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
                 <div class="form-group"><label>Copia Llave</label><input type="text" id="edit-copia-llave"></div>
                 <div class="form-group"><label>FED</label><input type="text" id="edit-fed"></div>
+                <div class="form-group"><label>Seguro Baja</label><select id="edit-seguro-baja"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
+                <div class="form-group"><label>Fecha Baja Seguro</label><input type="date" id="edit-fecha-baja-seguro"></div>
                 <div class="form-group"><label>Genesis</label><select id="edit-genesis"><option value="">Seleccionar</option><option value="Ok">Ok</option><option value="En Renting">En Renting</option></select></div>
                 <div class="form-group"><label>Solicitud Precio</label><input type="date" id="edit-fecha-sol-precio"></div>
                 <div class="form-group"><label>Precio Compra Usados</label><input type="text" id="edit-precio-compra-usados"></div>
@@ -418,7 +405,8 @@
                 <div class="form-group"><label>Marca *</label><select id="new-marca" required></select></div>
                 <div class="form-group"><label>Modelo *</label><input type="text" id="new-modelo" required></div>
                 <div class="form-group"><label>VIN *</label><input type="text" id="new-vin" required></div>
-                <div class="form-group"><label>Categoria *</label><select id="new-categoria" required><option value="">Seleccionar</option><option value="RENTING">RENTING</option><option value="TEST CAR">TEST CAR</option><option value="COMPANY CAR">COMPANY CAR</option><option value="OTROS">OTROS</option></select></div>
+                <div class="form-group"><label>Seguro Baja</label><select id="new-seguro-baja"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
+                <div class="form-group"><label>Fecha Baja Seguro</label><input type="date" id="new-fecha-baja-seguro"></div>
                 <div class="form-group"><label>Fecha Entrega *</label><input type="date" id="new-fecha-entrega" required></div>
                 <div class="form-group"><label>Numero Factura</label><input type="text" id="new-numero-factura"></div>
                 <div class="form-group"><label>Factura SI/NO</label><select id="new-factura-sino"><option value="">Seleccionar</option><option value="si">SI</option><option value="no">NO</option></select></div>
@@ -504,7 +492,7 @@ async function guardarEnSupabase(vehiculo) {
                 patente: vehiculo.Patente,
                 marca: vehiculo.Marca,
                 modelo: vehiculo.Modelo,
-                categoria: vehiculo.Categoria
+                seguro_baja: vehiculo["Seguro Baja"]
             };
             supabase.from('email_queue').insert([queueItem])
                 .then(r => console.log('📧 Email en cola:', vehiculo.Patente))
@@ -570,7 +558,7 @@ function mostrarTabla() {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
             <td>${v.Patente}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo.substring(0, 25)}</td>
-            <td>${v.Categoria}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
+            <td>${v["Seguro Baja"] === "si" ? "✓" : ""}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
             <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
             <td>${v["Fecha Solicitud Precio"] || "-"}</td><td>${v["Precio Compra Usados"] || "-"}</td><td>${v["Fecha Entrega Precio"] || "-"}</td>
             <td>${v["Fecha Solicitud Factura CND"] || "-"}</td><td>${v["Fecha Factura CND"] || "-"}</td>
@@ -584,7 +572,7 @@ function mostrarTabla() {
 function aplicarFiltros() {
     const m = document.getElementById("filtro-marca").value;
     const g = document.getElementById("filtro-gerencia").value;
-    const c = document.getElementById("filtro-categoria").value;
+    const sb = document.getElementById("filtro-seguro-baja").value;
     const feDesde = document.getElementById("filtro-fecha-desde").value;
     const feHasta = document.getElementById("filtro-fecha-hasta").value;
     const l = document.getElementById("filtro-llave").value;
@@ -597,9 +585,10 @@ function aplicarFiltros() {
         const tieneL = l === "" || (l === "si" && v["Copia llave"]) || (l === "no" && !v["Copia llave"]);
         const tieneF = f === "" || (f === "si" && v.FED) || (f === "no" && !v.FED);
         const tieneGen = gen === "" || (gen === "Ok" && v["Confirmación Genessis"] === "Ok") || (gen === "Sin" && !v["Confirmación Genessis"]);
+        const tieneSB = sb === "" || (sb === "si" && v["Seguro Baja"] === "si") || (sb === "no" && v["Seguro Baja"] !== "si");
         const cumpleBusqueda = !b || v.Patente.includes(b) || v.VIN.includes(b);
 
-        return (!m || v.Marca === m) && (!g || v.Gerencia === g) && (!c || v.Categoria === c) &&
+        return (!m || v.Marca === m) && (!g || v.Gerencia === g) && tieneSB &&
                tieneFechaEntrega && tieneL && tieneF && tieneGen && cumpleBusqueda;
     });
     mostrarTabla();
@@ -608,7 +597,7 @@ function aplicarFiltros() {
 function limpiarFiltros() {
     document.getElementById("filtro-marca").value = "";
     document.getElementById("filtro-gerencia").value = "";
-    document.getElementById("filtro-categoria").value = "";
+    document.getElementById("filtro-seguro-baja").value = "";
     document.getElementById("filtro-fecha-desde").value = "";
     document.getElementById("filtro-fecha-hasta").value = "";
     document.getElementById("filtro-llave").value = "";
@@ -628,6 +617,8 @@ function abrirModalEditar(patente) {
     document.getElementById("edit-factura-sino").value = v["Fecha Factura CND"] ? "si" : "no";
     document.getElementById("edit-copia-llave").value = v["Copia llave"] || "";
     document.getElementById("edit-fed").value = v.FED || "";
+    document.getElementById("edit-seguro-baja").value = v["Seguro Baja"] || "";
+    document.getElementById("edit-fecha-baja-seguro").value = v["Fecha Baja Seguro"] || "";
     document.getElementById("edit-genesis").value = v["Confirmación Genessis"] || "";
     document.getElementById("edit-fecha-sol-precio").value = v["Fecha Solicitud Precio"] || "";
     document.getElementById("edit-precio-compra-usados").value = v["Precio Compra Usados"] || "";
@@ -665,6 +656,8 @@ async function guardarEdicion(e) {
     }
     v["Copia llave"] = document.getElementById("edit-copia-llave").value;
     v.FED = document.getElementById("edit-fed").value;
+    v["Seguro Baja"] = document.getElementById("edit-seguro-baja").value;
+    v["Fecha Baja Seguro"] = document.getElementById("edit-fecha-baja-seguro").value;
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
     v["Fecha Solicitud Precio"] = document.getElementById("edit-fecha-sol-precio").value;
     v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
@@ -700,7 +693,7 @@ async function agregarVehiculo(e) {
         "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? new Date().toISOString().split('T')[0] : "",
         "Copia llave": document.getElementById("new-copia-llave").value, FED: document.getElementById("new-fed").value,
         "Confirmación Genessis": "", Comentarios: "", Documentos: "", Precompra: "",
-        Categoria: document.getElementById("new-categoria").value, "Solicitud Precio Toma": "",
+        "Seguro Baja": document.getElementById("new-seguro-baja").value, "Fecha Baja Seguro": document.getElementById("new-fecha-baja-seguro").value, "Solicitud Precio Toma": "",
         "Solicitud Factura": "", "Fecha Solicitud Precio Toma": "",
         "Fecha Solicitud Factura": "", "Fecha Factura": "", SLA_Dias: 0, Gerencia: getGerencia(m),
         "Fecha Solicitud Precio": document.getElementById("new-fecha-sol-precio").value,
@@ -755,92 +748,10 @@ document.getElementById('filtro-busqueda').addEventListener('input', function() 
     aplicarFiltros();
 });
 
-// Dibujar gráficos
-function dibujarGraficos() {
-    const chartConfig = {responsive: true, maintainAspectRatio: true};
-
-    // Gráfico por Gerencia
-    const gerenciaData = datosFiltrados.reduce((acc, v) => {
-        acc[v.Gerencia] = (acc[v.Gerencia] || 0) + 1;
-        return acc;
-    }, {});
-
-    if (window.chartGerencia) window.chartGerencia.destroy();
-    const ctxG = document.getElementById('chart-gerencia').getContext('2d');
-    window.chartGerencia = new Chart(ctxG, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(gerenciaData),
-            datasets: [{
-                data: Object.values(gerenciaData),
-                backgroundColor: ['#001EF0', '#FA410A'],
-                borderColor: ['white'],
-                borderWidth: 2
-            }]
-        },
-        options: chartConfig
-    });
-
-    // Gráfico por Categoria
-    const categData = datosFiltrados.reduce((acc, v) => {
-        acc[v.Categoria] = (acc[v.Categoria] || 0) + 1;
-        return acc;
-    }, {});
-
-    if (window.chartCateg) window.chartCateg.destroy();
-    const ctxC = document.getElementById('chart-categoria').getContext('2d');
-    window.chartCateg = new Chart(ctxC, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(categData),
-            datasets: [{
-                label: 'Cantidad',
-                data: Object.values(categData),
-                backgroundColor: '#001EF0',
-                borderRadius: 5
-            }]
-        },
-        options: {...chartConfig, indexAxis: 'y'}
-    });
-
-    // Gráfico SLA
-    const slaData = {ok: 0, alerta: 0, vencido: 0};
-    datosFiltrados.forEach(v => {
-        const s1 = calcularSLA(v["Fecha Solicitud Precio"], v["Fecha Entrega Precio"]);
-        if (s1 > 0) slaData.ok++;
-        else if (s1 === 0) slaData.alerta++;
-        else slaData.vencido++;
-    });
-
-    if (window.chartSLA) window.chartSLA.destroy();
-    const ctxS = document.getElementById('chart-sla').getContext('2d');
-    window.chartSLA = new Chart(ctxS, {
-        type: 'pie',
-        data: {
-            labels: ['✓ Dentro SLA', '⚠️ Alerta', '❌ Vencido'],
-            datasets: [{
-                data: [slaData.ok, slaData.alerta, slaData.vencido],
-                backgroundColor: ['#41B437', '#FA410A', '#E00000'],
-                borderColor: ['white'],
-                borderWidth: 2
-            }]
-        },
-        options: chartConfig
-    });
-}
-
-// Hook para dibujar gráficos cuando cambian los datos
-const originalMostrarTabla = window.mostrarTabla;
-window.mostrarTabla = function() {
-    originalMostrarTabla();
-    setTimeout(dibujarGraficos, 100);
-};
-
 cargarDelSupabase().then(() => {
     mostrarResumen();
     poblarFiltroMarcas();
     mostrarTabla();
-    dibujarGraficos();
 });
     </script>
 </body>

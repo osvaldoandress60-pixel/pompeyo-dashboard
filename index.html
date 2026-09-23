@@ -481,9 +481,11 @@ async function guardarEnSupabase(vehiculo) {
         if (existe) {
             await supabase.from('vehiculos').delete().eq('Patente', vehiculo.Patente);
             await new Promise(r => setTimeout(r, 500));
-            await supabase.from('vehiculos').insert([vehiculo]);
+            const { data, error } = await supabase.from('vehiculos').insert([vehiculo]);
+            if (error) throw error;
         } else {
-            await supabase.from('vehiculos').insert([vehiculo]);
+            const { data, error } = await supabase.from('vehiculos').insert([vehiculo]);
+            if (error) throw error;
         }
 
         // Agregar a cola de emails cuando se inserta un vehículo nuevo

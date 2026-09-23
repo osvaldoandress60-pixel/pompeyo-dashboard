@@ -686,21 +686,22 @@ async function agregarVehiculo(e) {
         return;
     }
     const m = document.getElementById("new-marca").value;
+    const toDateOrNull = (val) => val && val.trim() ? val : null;
     const nuevoVehiculo = {
         Marca: m, Modelo: document.getElementById("new-modelo").value, Patente: p,
         VIN: document.getElementById("new-vin").value, Responsable: "NUEVO", Sucursal: "PENDIENTE",
-        "Fecha Entrega a CPD": document.getElementById("new-fecha-entrega").value,
+        "Fecha Entrega a CPD": toDateOrNull(document.getElementById("new-fecha-entrega").value),
         "Numero Factura": document.getElementById("new-numero-factura").value,
-        "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? new Date().toISOString().split('T')[0] : "",
+        "Fecha Factura CND": document.getElementById("new-factura-sino").value === "si" ? new Date().toISOString().split('T')[0] : null,
         "Copia llave": document.getElementById("new-copia-llave").value, FED: document.getElementById("new-fed").value,
-        "Confirmación Genessis": "", Comentarios: "", Documentos: "", Precompra: "",
-        "Seguro Baja": document.getElementById("new-seguro-baja").value, "Fecha Baja Seguro": document.getElementById("new-fecha-baja-seguro").value, "Solicitud Precio Toma": "",
-        "Solicitud Factura": "", "Fecha Solicitud Precio Toma": "",
-        "Fecha Solicitud Factura": "", "Fecha Factura": "", SLA_Dias: 0, Gerencia: getGerencia(m),
-        "Fecha Solicitud Precio": document.getElementById("new-fecha-sol-precio").value,
-        "Fecha Entrega Precio": document.getElementById("new-fecha-entrega-precio").value,
-        "Fecha Solicitud Factura CND": document.getElementById("new-fecha-sol-factura").value,
-        "Fecha Factura CND": document.getElementById("new-fecha-factura").value,
+        "Confirmación Genessis": null, Comentarios: null, Documentos: null, Precompra: null,
+        "Seguro Baja": document.getElementById("new-seguro-baja").value || null, "Fecha Baja Seguro": toDateOrNull(document.getElementById("new-fecha-baja-seguro").value), "Solicitud Precio Toma": null,
+        "Solicitud Factura": null, "Fecha Solicitud Precio Toma": null,
+        "Fecha Solicitud Factura": null, "Fecha Factura": null, SLA_Dias: 0, Gerencia: getGerencia(m),
+        "Fecha Solicitud Precio": toDateOrNull(document.getElementById("new-fecha-sol-precio").value),
+        "Fecha Entrega Precio": toDateOrNull(document.getElementById("new-fecha-entrega-precio").value),
+        "Fecha Solicitud Factura CND": toDateOrNull(document.getElementById("new-fecha-sol-factura").value),
+        "Fecha Factura CND": toDateOrNull(document.getElementById("new-fecha-factura").value),
         SLA_Precio_Dias: 0, SLA_Factura_Dias: 0, SLA_Pago_Dias: 0
     };
     await guardarEnSupabase(nuevoVehiculo);

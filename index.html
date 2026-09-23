@@ -491,8 +491,7 @@ async function guardarEnSupabase(vehiculo) {
             const queueItem = {
                 patente: vehiculo.Patente,
                 marca: vehiculo.Marca,
-                modelo: vehiculo.Modelo,
-                seguro_baja: vehiculo["Seguro Baja"]
+                modelo: vehiculo.Modelo
             };
             supabase.from('email_queue').insert([queueItem])
                 .then(r => console.log('📧 Email en cola:', vehiculo.Patente))

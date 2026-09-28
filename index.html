@@ -342,6 +342,7 @@
                 <div><label>Copia Llave</label><select id="filtro-llave"><option value="">Todas</option><option value="si">Con Llave</option><option value="no">Sin Llave</option></select></div>
                 <div><label>FED</label><select id="filtro-fed"><option value="">Todas</option><option value="si">Con FED</option><option value="no">Sin FED</option></select></div>
                 <div><label>Genesis</label><select id="filtro-genesis"><option value="">Todas</option><option value="Ok">Ok</option><option value="Sin">Sin Confirmar</option></select></div>
+                <div><label>Facturado</label><select id="filtro-facturado"><option value="">Todas</option><option value="si">Con Factura</option><option value="no">Sin Factura</option></select></div>
                 <div><label>Busqueda</label><input type="text" id="filtro-busqueda" placeholder="Patente..."></div>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
@@ -579,6 +580,7 @@ function aplicarFiltros() {
     const l = document.getElementById("filtro-llave").value;
     const f = document.getElementById("filtro-fed").value;
     const gen = document.getElementById("filtro-genesis").value;
+    const fac = document.getElementById("filtro-facturado").value;
     const b = document.getElementById("filtro-busqueda").value.toUpperCase();
 
     datosFiltrados = datosOriginales.filter(v => {
@@ -587,10 +589,11 @@ function aplicarFiltros() {
         const tieneF = f === "" || (f === "si" && v.FED) || (f === "no" && !v.FED);
         const tieneGen = gen === "" || (gen === "Ok" && v["Confirmación Genessis"] === "Ok") || (gen === "Sin" && !v["Confirmación Genessis"]);
         const tieneSB = sb === "" || (sb === "si" && v["Seguro Baja"] === "si") || (sb === "no" && v["Seguro Baja"] !== "si");
+        const tieneFactura = fac === "" || (fac === "si" && (v["Fecha Factura CND"] || v["Numero Factura"])) || (fac === "no" && !v["Fecha Factura CND"] && !v["Numero Factura"]);
         const cumpleBusqueda = !b || (v.Patente && v.Patente.toUpperCase().includes(b)) || (v.VIN && v.VIN.toUpperCase().includes(b));
 
         return (!m || v.Marca === m) && (!g || v.Gerencia === g) && tieneSB &&
-               tieneFechaEntrega && tieneL && tieneF && tieneGen && cumpleBusqueda;
+               tieneFechaEntrega && tieneL && tieneF && tieneGen && tieneFactura && cumpleBusqueda;
     });
     mostrarTabla();
 }
@@ -604,6 +607,7 @@ function limpiarFiltros() {
     document.getElementById("filtro-llave").value = "";
     document.getElementById("filtro-fed").value = "";
     document.getElementById("filtro-genesis").value = "";
+    document.getElementById("filtro-facturado").value = "";
     document.getElementById("filtro-busqueda").value = "";
     datosFiltrados = [...datosOriginales];
     mostrarTabla();

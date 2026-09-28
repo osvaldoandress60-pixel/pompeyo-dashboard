@@ -624,7 +624,6 @@ function abrirModalEditar(patente) {
     document.getElementById("edit-fecha-baja-seguro").value = v["Fecha Baja Seguro"] || "";
     document.getElementById("edit-genesis").value = v["Confirmación Genessis"] || "";
     document.getElementById("edit-fecha-sol-precio").value = v["Fecha Solicitud Precio"] || "";
-    document.getElementById("edit-precio-compra-usados").value = v["Precio Compra Usados"] || "";
     document.getElementById("edit-fecha-entrega-precio").value = v["Fecha Entrega Precio"] || "";
     document.getElementById("edit-fecha-sol-factura").value = v["Fecha Solicitud Factura CND"] || "";
     document.getElementById("edit-fecha-factura").value = v["Fecha Factura CND"] || "";
@@ -664,8 +663,6 @@ async function guardarEdicion(e) {
     v["Fecha Baja Seguro"] = toDateOrNull(document.getElementById("edit-fecha-baja-seguro").value);
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
     v["Fecha Solicitud Precio"] = toDateOrNull(document.getElementById("edit-fecha-sol-precio").value);
-    const pcu = document.getElementById("edit-precio-compra-usados").value;
-    v["Precio Compra Usados"] = pcu ? pcu.replace(/[^\d]/g, '') : "";
     v["Fecha Entrega Precio"] = toDateOrNull(document.getElementById("edit-fecha-entrega-precio").value);
     v["Fecha Solicitud Factura CND"] = toDateOrNull(document.getElementById("edit-fecha-sol-factura").value);
     await guardarEnSupabase(v);

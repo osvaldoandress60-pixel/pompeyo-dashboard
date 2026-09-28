@@ -666,7 +666,8 @@ async function guardarEdicion(e) {
     v["Fecha Baja Seguro"] = toDateOrNull(document.getElementById("edit-fecha-baja-seguro").value);
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
     v["Fecha Solicitud Precio"] = toDateOrNull(document.getElementById("edit-fecha-sol-precio").value);
-    v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
+    const pcu = document.getElementById("edit-precio-compra-usados").value;
+    v["Precio Compra Usados"] = pcu ? pcu.replace(/[^\d]/g, '') : "";
     v["Fecha Entrega Precio"] = toDateOrNull(document.getElementById("edit-fecha-entrega-precio").value);
     v["Fecha Solicitud Factura CND"] = toDateOrNull(document.getElementById("edit-fecha-sol-factura").value);
     await guardarEnSupabase(v);

@@ -587,7 +587,7 @@ function aplicarFiltros() {
         const tieneF = f === "" || (f === "si" && v.FED) || (f === "no" && !v.FED);
         const tieneGen = gen === "" || (gen === "Ok" && v["Confirmación Genessis"] === "Ok") || (gen === "Sin" && !v["Confirmación Genessis"]);
         const tieneSB = sb === "" || (sb === "si" && v["Seguro Baja"] === "si") || (sb === "no" && v["Seguro Baja"] !== "si");
-        const cumpleBusqueda = !b || v.Patente.toUpperCase().includes(b) || (v.VIN && v.VIN.toUpperCase().includes(b));
+        const cumpleBusqueda = !b || (v.Patente && v.Patente.toUpperCase().includes(b)) || (v.VIN && v.VIN.toUpperCase().includes(b));
 
         return (!m || v.Marca === m) && (!g || v.Gerencia === g) && tieneSB &&
                tieneFechaEntrega && tieneL && tieneF && tieneGen && cumpleBusqueda;

@@ -480,9 +480,7 @@ async function guardarEnSupabase(vehiculo) {
     try {
         const existe = datosOriginales.find(v => v.Patente === vehiculo.Patente);
         if (existe) {
-            await supabase.from('vehiculos').delete().eq('Patente', vehiculo.Patente);
-            await new Promise(r => setTimeout(r, 500));
-            const { data, error } = await supabase.from('vehiculos').insert([vehiculo]);
+            const { data, error } = await supabase.from('vehiculos').update(vehiculo).eq('Patente', vehiculo.Patente);
             if (error) throw error;
         } else {
             const { data, error } = await supabase.from('vehiculos').insert([vehiculo]);
@@ -504,7 +502,7 @@ async function guardarEnSupabase(vehiculo) {
         await cargarDelSupabase();
     } catch (error) {
         console.error('Error guardando:', error);
-        alert('Error al guardar');
+        alert('Error al guardar: ' + error.message);
     }
 }
 

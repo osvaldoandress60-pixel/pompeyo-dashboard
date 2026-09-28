@@ -662,7 +662,8 @@ async function guardarEdicion(e) {
     v["Fecha Baja Seguro"] = toDateOrNull(document.getElementById("edit-fecha-baja-seguro").value);
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
     v["Fecha Solicitud Precio"] = toDateOrNull(document.getElementById("edit-fecha-sol-precio").value);
-    v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
+    // TODO: Descomentar cuando se cree la columna "Precio Compra Usados" en Supabase
+    // v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
     v["Fecha Entrega Precio"] = toDateOrNull(document.getElementById("edit-fecha-entrega-precio").value);
     v["Fecha Solicitud Factura CND"] = toDateOrNull(document.getElementById("edit-fecha-sol-factura").value);
     await guardarEnSupabase(v);

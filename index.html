@@ -643,6 +643,7 @@ async function guardarEdicion(e) {
     e.preventDefault();
     const v = datosOriginales.find(x => x.Patente === modalEnEdicion);
     if (!v) return;
+    const toDateOrNull = (val) => val && val.trim() ? val : null;
     v["Numero Factura"] = document.getElementById("edit-numero-factura").value;
     const facturaSino = document.getElementById("edit-factura-sino").value;
     if (facturaSino === "si" && !v["Fecha Factura CND"]) {
@@ -651,20 +652,19 @@ async function guardarEdicion(e) {
         v["Fecha Factura CND"] = hoy;
     } else if (facturaSino === "no") {
         document.getElementById("edit-fecha-factura").value = "";
-        v["Fecha Factura CND"] = "";
+        v["Fecha Factura CND"] = null;
     } else {
-        v["Fecha Factura CND"] = document.getElementById("edit-fecha-factura").value;
+        v["Fecha Factura CND"] = toDateOrNull(document.getElementById("edit-fecha-factura").value);
     }
     v["Copia llave"] = document.getElementById("edit-copia-llave").value;
     v.FED = document.getElementById("edit-fed").value;
-    v["Seguro Baja"] = document.getElementById("edit-seguro-baja").value;
-    v["Fecha Baja Seguro"] = document.getElementById("edit-fecha-baja-seguro").value;
+    v["Seguro Baja"] = document.getElementById("edit-seguro-baja").value || null;
+    v["Fecha Baja Seguro"] = toDateOrNull(document.getElementById("edit-fecha-baja-seguro").value);
     v["Confirmación Genessis"] = document.getElementById("edit-genesis").value;
-    v["Fecha Solicitud Precio"] = document.getElementById("edit-fecha-sol-precio").value;
+    v["Fecha Solicitud Precio"] = toDateOrNull(document.getElementById("edit-fecha-sol-precio").value);
     v["Precio Compra Usados"] = document.getElementById("edit-precio-compra-usados").value;
-    v["Fecha Entrega Precio"] = document.getElementById("edit-fecha-entrega-precio").value;
-    v["Fecha Solicitud Factura CND"] = document.getElementById("edit-fecha-sol-factura").value;
-    v["Fecha Factura CND"] = document.getElementById("edit-fecha-factura").value;
+    v["Fecha Entrega Precio"] = toDateOrNull(document.getElementById("edit-fecha-entrega-precio").value);
+    v["Fecha Solicitud Factura CND"] = toDateOrNull(document.getElementById("edit-fecha-sol-factura").value);
     await guardarEnSupabase(v);
     cerrarModal("modalEditar");
     mostrarTabla();

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -350,6 +351,7 @@
                     <button class="btn-primary" onclick="aplicarFiltros()">Aplicar</button>
                     <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
                     <button class="btn-success" onclick="abrirModalNuevo()">+ Agregar</button>
+                    <button class="btn-secondary" onclick="abrirModalCargar()">📂 Cargar Archivo</button>
                 </div>
                 <div style="margin-left: auto;">
                     <button class="btn-secondary" onclick="exportarExcel()" title="Descargar datos en Excel">📥 Exportar Excel</button>
@@ -419,6 +421,19 @@
                 <div class="form-group"><label>Factura CND</label><input type="date" id="new-fecha-factura"></div>
                 <button type="submit" class="btn-primary">Agregar</button>
                 <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevo')">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalCargar" class="modal">
+        <div class="modal-content">
+            <h2>Cargar Archivo por Línea</h2>
+            <form id="formCargar" onsubmit="cargarArchivoLinea(event)">
+                <div class="form-group"><label>Línea de trabajo *</label><select id="carga-linea" required><option value="DC">DC</option><option value="NB">NB</option></select></div>
+                <div class="form-group"><label>Archivo (.xlsx, .xls o .csv) *</label><input type="file" id="carga-archivo" accept=".xlsx,.xls,.csv" required></div>
+                <p id="carga-estado" style="font-size: 0.9em; margin-bottom: 10px;"></p>
+                <button type="submit" class="btn-primary" id="carga-btn">Cargar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCargar')">Cancelar</button>
             </form>
         </div>
     </div>
@@ -709,6 +724,109 @@ async function agregarVehiculo(e) {
     limpiarFiltros();
     mostrarResumen();
     mostrarTabla();
+}
+
+function abrirModalCargar() {
+    document.getElementById("formCargar").reset();
+    document.getElementById("carga-estado").textContent = "";
+    document.getElementById("carga-btn").disabled = false;
+    document.getElementById("modalCargar").classList.add("show");
+}
+
+function fechaDesdeExcel(v) {
+    if (v instanceof Date) return v.toISOString().split('T')[0];
+    if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400 * 1000)).toISOString().split('T')[0];
+    return v;
+}
+
+async function cargarArchivoLinea(e) {
+    e.preventDefault();
+    const linea = document.getElementById("carga-linea").value;
+    const archivo = document.getElementById("carga-archivo").files[0];
+    const estado = document.getElementById("carga-estado");
+    const btn = document.getElementById("carga-btn");
+    btn.disabled = true;
+    estado.textContent = "Leyendo archivo...";
+
+    try {
+        const wb = XLSX.read(await archivo.arrayBuffer(), { cellDates: true });
+        const filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: null });
+
+        const columnas = datosOriginales.length ? Object.keys(datosOriginales[0]) : [];
+        const aColumna = (encabezado) => {
+            const k = String(encabezado).trim().toLowerCase();
+            if (!columnas.length) return String(encabezado).trim();
+            return columnas.find(c => c.toLowerCase() === k) || null;
+        };
+
+        const porPatente = new Map();
+        for (const fila of filas) {
+            const r = {};
+            for (const [enc, valor] of Object.entries(fila)) {
+                const col = aColumna(enc);
+                if (!col) continue;
+                let v = valor;
+                if (col.startsWith("Fecha")) v = fechaDesdeExcel(v);
+                if (typeof v === 'string') v = v.trim();
+                if (v === "" || v === undefined) v = null;
+                r[col] = v;
+            }
+            if (!r.Patente) continue;
+            r.Patente = String(r.Patente).toUpperCase();
+            r.Gerencia = linea;
+            porPatente.set(r.Patente, r);
+        }
+        const registros = [...porPatente.values()];
+
+        if (!registros.length) {
+            estado.textContent = "No se encontró ninguna fila con columna Patente.";
+            btn.disabled = false;
+            return;
+        }
+
+        const originalPorPatente = new Map(datosOriginales.map(v => [(v.Patente || '').toUpperCase(), v.Patente]));
+        const nuevos = registros.filter(r => !originalPorPatente.has(r.Patente));
+        const actualizar = registros.filter(r => originalPorPatente.has(r.Patente));
+
+        if (!confirm(`Línea ${linea}: ${actualizar.length} vehículos se actualizarán y ${nuevos.length} se agregarán. ¿Continuar?`)) {
+            estado.textContent = "";
+            btn.disabled = false;
+            return;
+        }
+
+        const errores = [];
+        estado.textContent = "Guardando...";
+
+        const defaultsNuevo = { Responsable: "NUEVO", Sucursal: "PENDIENTE", SLA_Dias: 0, SLA_Precio_Dias: 0, SLA_Factura_Dias: 0, SLA_Pago_Dias: 0 };
+        const paraInsertar = nuevos.map(r => {
+            const out = { ...r };
+            for (const [k, val] of Object.entries(defaultsNuevo)) {
+                if (!(k in out) && (!columnas.length || columnas.includes(k))) out[k] = val;
+            }
+            return out;
+        });
+        for (let i = 0; i < paraInsertar.length; i += 50) {
+            const { error } = await supabase.from('vehiculos').insert(paraInsertar.slice(i, i + 50));
+            if (error) errores.push(error.message);
+        }
+
+        for (const r of actualizar) {
+            const payload = Object.fromEntries(Object.entries(r).filter(([k, v]) => k !== 'Patente' && v !== null));
+            const { error } = await supabase.from('vehiculos').update(payload).eq('Patente', originalPorPatente.get(r.Patente));
+            if (error) errores.push(`${r.Patente}: ${error.message}`);
+        }
+
+        await cargarDelSupabase();
+        mostrarResumen();
+        mostrarTabla();
+        cerrarModal('modalCargar');
+        alert(`Línea ${linea}: ${nuevos.length} agregados, ${actualizar.length} actualizados.` +
+              (errores.length ? `\nErrores (${errores.length}): ${errores[0]}` : ''));
+    } catch (error) {
+        console.error('Error cargando archivo:', error);
+        estado.textContent = "Error: " + error.message;
+        btn.disabled = false;
+    }
 }
 
 // Exportar a Excel

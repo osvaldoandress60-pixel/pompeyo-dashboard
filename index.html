@@ -352,6 +352,7 @@
                     <button class="btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
                     <button class="btn-success" onclick="abrirModalNuevo()">+ Agregar</button>
                     <button class="btn-secondary" onclick="abrirModalCargar()">📂 Cargar Archivo</button>
+                    <button class="btn-secondary" onclick="eliminarDuplicados()">🧹 Eliminar duplicados</button>
                 </div>
                 <div style="margin-left: auto;">
                     <button class="btn-secondary" onclick="exportarExcel()" title="Descargar datos en Excel">📥 Exportar Excel</button>
@@ -395,6 +396,7 @@
                 <div class="form-group"><label>Solicitud Factura CND</label><input type="date" id="edit-fecha-sol-factura"></div>
                 <div class="form-group"><label>Factura CND</label><input type="date" id="edit-fecha-factura"></div>
                 <button type="submit" class="btn-primary">Guardar</button>
+                <button type="button" class="btn-secondary" onclick="eliminarVehiculo()" style="background: var(--peligro); color: white;">Eliminar</button>
                 <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
             </form>
         </div>
@@ -724,6 +726,57 @@ async function agregarVehiculo(e) {
     limpiarFiltros();
     mostrarResumen();
     mostrarTabla();
+}
+
+async function eliminarVehiculo() {
+    const patente = modalEnEdicion;
+    const copias = datosOriginales.filter(v => v.Patente === patente).length;
+    if (!patente || !confirm(`¿Eliminar ${patente}${copias > 1 ? ` (${copias} copias)` : ''}? Esta acción no se puede deshacer.`)) return;
+    const { error } = await supabase.from('vehiculos').delete().eq('Patente', patente);
+    if (error) { alert('Error al eliminar: ' + error.message); return; }
+    cerrarModal('modalEditar');
+    await cargarDelSupabase();
+    mostrarResumen();
+    mostrarTabla();
+}
+
+async function eliminarDuplicados() {
+    const grupos = new Map();
+    for (const v of datosOriginales) {
+        const k = v.Patente || '';
+        if (!grupos.has(k)) grupos.set(k, []);
+        grupos.get(k).push(v);
+    }
+    const firma = v => JSON.stringify(Object.keys(v).sort().map(k => [k, v[k]]));
+    const aLimpiar = [], conDiferencias = [];
+    for (const [patente, filas] of grupos) {
+        if (filas.length < 2) continue;
+        const iguales = filas.every(f => firma(f) === firma(filas[0]));
+        (iguales ? aLimpiar : conDiferencias).push({ patente, filas });
+    }
+    if (!aLimpiar.length && !conDiferencias.length) { alert('No hay vehículos duplicados.'); return; }
+
+    const extras = aLimpiar.reduce((a, g) => a + g.filas.length - 1, 0);
+    let msg = `Se eliminarán ${extras} copias idénticas de ${aLimpiar.length} vehículos (se conserva una copia de cada uno).`;
+    if (conDiferencias.length) {
+        msg += `\n\nNo se tocarán ${conDiferencias.length} vehículos porque sus copias tienen datos distintos: ${conDiferencias.map(g => g.patente).join(', ')}.`;
+    }
+    if (!aLimpiar.length || !confirm(msg + '\n\n¿Continuar?')) return;
+
+    const errores = [];
+    for (const g of aLimpiar) {
+        const copia = g.filas[0];
+        const { error: errDel } = await supabase.from('vehiculos').delete().eq('Patente', copia.Patente);
+        if (errDel) { errores.push(`${g.patente}: ${errDel.message}`); continue; }
+        const { error: errIns } = await supabase.from('vehiculos').insert([copia]);
+        if (errIns) errores.push(`${g.patente} NO RESTAURADO. Datos: ${JSON.stringify(copia)}`);
+    }
+
+    await cargarDelSupabase();
+    mostrarResumen();
+    mostrarTabla();
+    alert(`Listo. Duplicados limpiados: ${aLimpiar.length - errores.length}.` +
+          (errores.length ? `\nErrores (${errores.length}): ${errores[0]}` : ''));
 }
 
 function abrirModalCargar() {

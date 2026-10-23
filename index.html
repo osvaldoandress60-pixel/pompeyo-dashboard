@@ -395,6 +395,12 @@
                 <div class="form-group"><label>Entrega Precio</label><input type="date" id="edit-fecha-entrega-precio"></div>
                 <div class="form-group"><label>Solicitud Factura CND</label><input type="date" id="edit-fecha-sol-factura"></div>
                 <div class="form-group"><label>Factura CND</label><input type="date" id="edit-fecha-factura"></div>
+                <div class="form-group"><label>Archivos (máx. 3 fotos o capturas + 1 PDF)</label>
+                    <div id="archivos-lista" style="margin-bottom: 8px; font-size: 0.9em;"></div>
+                    <input type="file" id="archivos-input" multiple accept="image/*,application/pdf">
+                    <button type="button" class="btn-secondary" onclick="subirArchivos()" style="margin-top: 6px;">Subir archivos</button>
+                    <p id="archivos-estado" style="font-size: 0.9em; margin-top: 6px;"></p>
+                </div>
                 <button type="submit" class="btn-primary">Guardar</button>
                 <button type="button" class="btn-secondary" onclick="eliminarVehiculo()" style="background: var(--peligro); color: white;">Eliminar</button>
                 <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
@@ -632,6 +638,8 @@ function abrirModalEditar(patente) {
     const v = datosOriginales.find(x => x.Patente === patente);
     if (!v) return;
     modalEnEdicion = patente;
+    document.getElementById("archivos-estado").textContent = "";
+    listarArchivos(patente);
     document.getElementById("edit-patente").value = v.Patente;
     document.getElementById("edit-numero-factura").value = v["Numero Factura"] || "";
     document.getElementById("edit-factura-sino").value = v["Fecha Factura CND"] ? "si" : "no";
@@ -728,10 +736,72 @@ async function agregarVehiculo(e) {
     mostrarTabla();
 }
 
+const BUCKET_ARCHIVOS = 'vehiculos-docs';
+const MAX_ARCHIVOS = 4;
+const MAX_PDF = 1;
+const MAX_BYTES_ARCHIVO = 10 * 1024 * 1024;
+
+const esPdf = nombre => /\.pdf$/i.test(nombre);
+
+async function listarArchivos(patente) {
+    const lista = document.getElementById("archivos-lista");
+    lista.textContent = "Cargando archivos...";
+    const { data, error } = await supabase.storage.from(BUCKET_ARCHIVOS).list(patente, { limit: 100 });
+    if (error) { lista.textContent = "Error: " + error.message; return []; }
+    const archivos = (data || []).filter(f => f.name !== '.emptyFolderPlaceholder');
+    lista.innerHTML = archivos.length ? archivos.map(f => {
+        const url = supabase.storage.from(BUCKET_ARCHIVOS).getPublicUrl(`${patente}/${f.name}`).data.publicUrl;
+        return `<div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+            <a href="${url}" target="_blank">${f.name}</a>
+            <button type="button" class="btn-secondary" onclick="eliminarArchivo('${patente}', '${f.name}')" style="padding: 2px 8px;">✕</button>
+        </div>`;
+    }).join('') : "<em>Sin archivos</em>";
+    return archivos;
+}
+
+async function subirArchivos() {
+    const patente = modalEnEdicion;
+    const input = document.getElementById("archivos-input");
+    const estado = document.getElementById("archivos-estado");
+    const nuevos = [...input.files];
+    if (!nuevos.length) { estado.textContent = "Selecciona al menos un archivo."; return; }
+
+    const actuales = await listarArchivos(patente);
+    if (actuales.length + nuevos.length > MAX_ARCHIVOS) {
+        estado.textContent = `Máximo ${MAX_ARCHIVOS} archivos por patente (ya tiene ${actuales.length}).`;
+        return;
+    }
+    const pdfs = actuales.filter(f => esPdf(f.name)).length + nuevos.filter(f => esPdf(f.name)).length;
+    if (pdfs > MAX_PDF) { estado.textContent = `Máximo ${MAX_PDF} PDF por patente.`; return; }
+    const grande = nuevos.find(f => f.size > MAX_BYTES_ARCHIVO);
+    if (grande) { estado.textContent = `${grande.name} supera 10 MB.`; return; }
+
+    estado.textContent = "Subiendo...";
+    for (const f of nuevos) {
+        const nombre = `${Date.now()}-${f.name.replace(/[^A-Za-z0-9._-]/g, '_')}`;
+        const { error } = await supabase.storage.from(BUCKET_ARCHIVOS).upload(`${patente}/${nombre}`, f, { contentType: f.type });
+        if (error) { estado.textContent = "Error: " + error.message; await listarArchivos(patente); return; }
+    }
+    input.value = "";
+    estado.textContent = "Archivos subidos.";
+    await listarArchivos(patente);
+}
+
+async function eliminarArchivo(patente, nombre) {
+    if (!confirm(`¿Eliminar ${nombre}?`)) return;
+    const { error } = await supabase.storage.from(BUCKET_ARCHIVOS).remove([`${patente}/${nombre}`]);
+    if (error) { alert('Error al eliminar archivo: ' + error.message); return; }
+    await listarArchivos(patente);
+}
+
 async function eliminarVehiculo() {
     const patente = modalEnEdicion;
     const copias = datosOriginales.filter(v => v.Patente === patente).length;
-    if (!patente || !confirm(`¿Eliminar ${patente}${copias > 1 ? ` (${copias} copias)` : ''}? Esta acción no se puede deshacer.`)) return;
+    if (!patente || !confirm(`¿Eliminar ${patente}${copias > 1 ? ` (${copias} copias)` : ''} y sus archivos? Esta acción no se puede deshacer.`)) return;
+    const { data: archivos } = await supabase.storage.from(BUCKET_ARCHIVOS).list(patente, { limit: 100 });
+    if (archivos && archivos.length) {
+        await supabase.storage.from(BUCKET_ARCHIVOS).remove(archivos.map(f => `${patente}/${f.name}`));
+    }
     const { error } = await supabase.from('vehiculos').delete().eq('Patente', patente);
     if (error) { alert('Error al eliminar: ' + error.message); return; }
     cerrarModal('modalEditar');

@@ -582,7 +582,7 @@ function mostrarTabla() {
         const s3 = calcularSLA(v["Fecha Solicitud Factura CND"], v["Fecha Factura CND"]);
         const tr = document.createElement("tr");
         tr.innerHTML = `<td><button class="btn-primary" onclick="abrirModalEditar('${v.Patente}')" style="padding: 5px 10px; font-size: 0.8em;">Editar</button></td>
-            <td>${v.Patente}${patentesConArchivos.has(v.Patente) ? ' <span title="Tiene archivos cargados">📎</span>' : ''}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo ? v.Modelo.substring(0, 25) : "-"}</td>
+            <td>${v.Patente}${patentesConArchivos.has(v.Patente) ? ' <span title="Tiene archivos cargados" style="display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #41B437; color: white; font-size: 0.75em; font-weight: 700; white-space: nowrap;">📎 Archivos</span>' : ''}</td><td>${v.Marca}</td><td><strong>${v.Gerencia}</strong></td><td>${v.Modelo ? v.Modelo.substring(0, 25) : "-"}</td>
             <td>${v["Seguro Baja"] === "si" ? "✓" : ""}</td><td>${v["Fecha Entrega a CPD"]}</td><td>${v["Numero Factura"] || "-"}</td><td>${v["Copia llave"] ? "✓" : ""}</td>
             <td>${v.FED ? "✓" : ""}</td><td>${v["Confirmación Genessis"] === "Ok" ? "✓" : ""}</td>
             <td>${v["Fecha Solicitud Precio"] || "-"}</td><td>${v["Precio Compra Usados"] || "-"}</td><td>${v["Fecha Entrega Precio"] || "-"}</td>
